@@ -5,6 +5,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -24,8 +25,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         final TabLayout tabLayout = (TabLayout)findViewById(R.id.tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("Input"));
-        tabLayout.addTab(tabLayout.newTab().setText("List"));
+        tabLayout.addTab(tabLayout.newTab().setText("INPUT"));
+        tabLayout.addTab(tabLayout.newTab().setText("LIST"));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
 
         viewPager = (ViewPager)findViewById(R.id.pager);
@@ -37,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
                                                public void onTabSelected(TabLayout.Tab tab) {
                                                    viewPager.setCurrentItem(tab.getPosition());
 
+                                                   if (tab.getText().toString().equals("LIST")) {
+                                                       adapter.getFragment2().area = adapter.getFragment1().area;
+                                                       adapter.getFragment2().date = adapter.getFragment1().date;
+                                                       adapter.getFragment2().createHeader();
+                                                   }
                                                }
 
                                                @Override

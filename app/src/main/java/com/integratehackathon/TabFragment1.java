@@ -52,6 +52,8 @@ public class TabFragment1 extends Fragment {
 
     private Item item;
 
+    public String area, date;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         _view = inflater.inflate(R.layout.tab_fragment_1, container, false);
@@ -91,6 +93,10 @@ public class TabFragment1 extends Fragment {
                     break;
                 case R.id.btn_go:
                     saveData();
+                    area = item.getArea();
+                    date = item.getDate();
+                    Log.d("test", date);
+                    ((MainActivity)getActivity()).getViewPager().setCurrentItem(1);
                     break;
             }
         }
@@ -137,7 +143,8 @@ public class TabFragment1 extends Fragment {
 
     void saveData() {
         if (readyToSave()) {
-            new postData().execute();
+            item.setDate(btnDate.getText().toString()); // area is set in spinner
+            //new postData().execute();
         }
     }
 
