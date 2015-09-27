@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+    public static String URL = "";
 
     ViewPager viewPager;
 
