@@ -5,29 +5,67 @@
     android:background="@color/ColorAccent">
 
     <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal">
+        android:layout_height="50dp"
+        android:gravity="center_vertical"
+        android:background="@android:color/darker_gray"
+        >
 
         <TextView
-            android:id="@+id/txv_to"
-            android:layout_width="wrap_content"
+            android:id="@+id/channel_name"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="To"/>
-        <TextView
-            android:id="@+id/txv_area"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/txv_on"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="on"/>
-        <TextView
-            android:id="@+id/txv_date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_weight="5"
+            android:gravity="center_vertical"
+            android:textSize="20sp"
+            android:text="Channel Name"
+            />
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="?android:attr/listDivider"
+        />
+    <ListView
+        android:id="@+id/channel_items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="5"
+        android:padding="5dp"
+        android:divider="@null"
+        />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="?android:attr/listDivider"
+        />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="10dp"
+        android:gravity="center_vertical"
+        >
+
+        <EditText
+            android:id="@+id/publishMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:singleLine="true"
+            android:hint="Message"
+            />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="@android:color/transparent"
+            android:onClick="doPublish"
+            android:clickable="false"
+            />
+    </LinearLayout>
 </LinearLayout>

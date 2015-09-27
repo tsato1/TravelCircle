@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +13,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.magnet.mmx.client.api.MMXChannel;
+import com.magnet.mmx.client.common.TopicExistsException;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -30,13 +35,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by T on 2015/09/26.
  */
 public class TabFragment1 extends Fragment {
+    private EditText mChannelName = null;
+//    private ListView mTagList = null;
+//    private String[] mTagArray = null;
+    private AtomicBoolean mSaving = new AtomicBoolean(false);
+
     private final static String[] areaArray = {"Choose Area", "Africa", "Americas", "Asia", "Europe", "Pacific Area"};
     private final static String[] countries_america = {"USA", "Canada", "Mexico"};
     private final static String[] countries_europe = {"UK", "France", "Germany"};
@@ -66,9 +78,13 @@ public class TabFragment1 extends Fragment {
         for (int i = 0; i < areaArray.length; i++) {
             listArea.add(areaArray[i]);
         }
-
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_dropdown_item, listArea);
         spnPlace.setAdapter(dataAdapter);
+
+
+        //mChannelName = (EditText) _view.findViewById(R.id.channelName);
+//        mTagList = (ListView) findViewById(R.id.tagList);
+//        mTagList.setAdapter(new ArrayAdapter<String>(this, R.layout.simple_list_item_checked, mTagArray));
 
         return _view;
     }
@@ -144,13 +160,15 @@ public class TabFragment1 extends Fragment {
     void saveData() {
         if (readyToSave()) {
             item.setDate(btnDate.getText().toString()); // area is set in spinner
-            //new postData().execute();
+            new postData().execute();
         }
     }
 
     class postData extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... arg0) {
+            Log.d("Fragment1", "Posting data");
+
             JSONObject jsonObject = new JSONObject();
 
             try {
@@ -171,9 +189,10 @@ public class TabFragment1 extends Fragment {
                         )
                         .build();
                 Response response = client.newCall (request).execute();
+                Log.d("responce", response.toString());
                 if (response.isSuccessful()) {
                     response.body().string();
-                    Log.i("Post Request", "Post success");
+                    Log.d("Post Request", "Post success");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -185,5 +204,77 @@ public class TabFragment1 extends Fragment {
 
         protected void onPostExecute(String str) {
         }
+    }
+
+    public void doSave(View view) {
+        Log.d("Fragment1", "dosave() called");
+        if (mSaving.compareAndSet(false, true)) {
+            final String channelName = "ChannelName";//mChannelName.getText().toString();
+            if (channelName.isEmpty()) {
+                mChannelName.setError(getString(R.string.error_channel_name_required));
+                return;
+            }
+            MMXChannel.create(channelName, channelName, true, new MMXChannel.OnFinishedListener<MMXChannel>() {
+                        public void onSuccess(MMXChannel mmxChannel) {
+                            //add tags
+                            //SparseBooleanArray checkedPositions = mTagList.getCheckedItemPositions();
+//                            final HashSet<String> tags = new HashSet<String>();
+//                            for (int i = 0; i < checkedPositions.size(); i++) {
+//                                int position = checkedPositions.keyAt(i);
+//                                boolean checked = checkedPositions.valueAt(i);
+//                                if (checked) {
+//                                    Log.d("Fragment1", "create(): adding tag: " + mTagArray[position]);
+//                                    tags.add(mTagArray[position]);
+//                                }
+//                            }
+//                            if (tags.size() > 0) {
+//                                mmxChannel.setTags(tags, new MMXChannel.OnFinishedListener<Void>() {
+//                                    public void onSuccess(Void aVoid) {
+//                                        mSaving.set(false);
+//                                        getActivity().finish();
+//
+//                                    }
+//
+//                                    public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
+//                                        Toast.makeText(getActivity(), "Channel '" + channelName + "' created, but unable to add tags: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+//                                        mSaving.set(false);
+//                                        getActivity().finish();
+//                                    }
+//                                });
+//                                updateView();
+//                            } else
+                            {
+                                mSaving.set(false);
+                                getActivity().finish();
+                            }
+                        }
+
+                        public void onFailure(MMXChannel.FailureCode failureCode, final Throwable throwable) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                public void run() {
+                                    if (throwable instanceof TopicExistsException) {
+                                        mChannelName.setError(getString(R.string.error_channel_already_exists));
+                                    } else if (throwable.getCause() instanceof TopicExistsException) {
+                                        mChannelName.setError(throwable.getMessage());
+                                    }
+                                    updateView();
+                                }
+                            });
+                            mSaving.set(false);
+                        }
+                    });
+            updateView();
+        }
+    }
+
+    public void updateView() {
+        Log.d("Fragment1", "updateView() called");
+        getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                boolean disableViews = mSaving.get();
+                mChannelName.setEnabled(!disableViews);
+                //mTagList.setEnabled(!disableViews);
+            }
+        });
     }
 }

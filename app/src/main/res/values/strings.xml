@@ -1,6 +1,11 @@
 <resources>
-    <string name="app_name">IntegrateHackathon</string>
+    <string name="app_name">TravelCircle</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <string name="chat_unknown">Unknown</string>
+    <string name="chat_me">Me - </string>
+    <string name="error_channel_name_required">Channel name is required.</string>
+    <string name="error_channel_already_exists">Channel already exists.</string>
 </resources>
