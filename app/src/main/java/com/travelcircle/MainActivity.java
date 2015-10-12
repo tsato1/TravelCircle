@@ -1,25 +1,25 @@
-package com.integratehackathon;
+package com.travelcircle;
 
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.magnet.mmx.client.api.ListResult;
 import com.magnet.mmx.client.api.MMX;
 import com.magnet.mmx.client.api.MMXChannel;
-import com.magnet.mmx.client.api.MMXMessage;
 
-import java.util.Calendar;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
     public static final String KEY_MESSAGE_TEXT = "content";
+    static final int REQUEST_LOGIN = 1;
 
     public static String URL = "http://52.27.180.186:3003/Item";
 
@@ -34,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -77,6 +75,32 @@ public class MainActivity extends AppCompatActivity {
                                            }
         );
     }
+
+    protected void onResume() {
+        super.onResume();
+        if (MMX.getCurrentUser() == null) {
+            Intent loginIntent = new Intent(this, LoginActivity.class);
+            startActivityForResult(loginIntent, REQUEST_LOGIN);
+        } else {
+            //populate or update the view
+            updateChannelList();
+        }
+    }
+
+    private synchronized void updateChannelList() {
+        MMXChannel.getAllPublicChannels(0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
+            public void onSuccess(ListResult<MMXChannel> mmxChannelListResult) {
+                ChannelsManager.getInstance(MainActivity.this).setChannels(mmxChannelListResult.items);
+                tabFragment1.updateViewUpdateChannel();
+            }
+
+            public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
+                Toast.makeText(MainActivity.this, "Exception: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                tabFragment1.updateViewUpdateChannel();
+            }
+        });
+    }
+
 
 
     public void doPublish(final View view) {

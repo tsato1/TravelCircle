@@ -5,11 +5,12 @@ android {
     buildToolsVersion "23.0.0"
 
     defaultConfig {
-        applicationId "com.integratehackathon"
+        applicationId "com.travelcircle"
         minSdkVersion 17
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
+        //multiDexEnabled = true
     }
     buildTypes {
         release {
@@ -26,8 +27,9 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:design:22.2.0'
-    compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    //compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.google.android.gms:play-services:8.1.0'
+    //compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile('com.magnet.mmx:magnet-mmx-client-android:1.9.1@aar') {
         transitive = true
     }

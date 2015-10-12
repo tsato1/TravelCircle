@@ -1,4 +1,4 @@
-package com.integratehackathon;
+package com.travelcircle;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -19,11 +19,8 @@ import com.magnet.mmx.client.api.MMX;
 import com.magnet.mmx.client.api.MMXChannel;
 import com.magnet.mmx.client.api.MMXMessage;
 
-import org.w3c.dom.Text;
-
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -71,7 +68,7 @@ public class TabFragment2 extends Fragment {
     }
 
     public void prepare() {
-        final String channelName = "ChannelName";
+        final String channelName = "channelname";
         Log.d("TabFragment2", "onCreate(): channelName=" + channelName);
         MMXChannel.findPublicChannelsByName(channelName, 0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
             @Override

@@ -1,4 +1,4 @@
-package com.integratehackathon;
+package com.travelcircle;
 
 import android.content.Context;
 import android.view.LayoutInflater;
