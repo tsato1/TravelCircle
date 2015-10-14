@@ -16,37 +16,37 @@ public class ItemListAdapter extends BaseAdapter {
 
     Context context;
     LayoutInflater layoutInflater = null;
-    ArrayList<Item> itemList;
+    ArrayList<MyProfile> userList;
 
     public ItemListAdapter(Context context) {
         this.context = context;
         this.layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setItemList(ArrayList<Item> itemList) {
-        this.itemList = itemList;
+    public void setUserList(ArrayList<MyProfile> userList) {
+        this.userList = userList;
     }
 
     @Override
     public int getCount() {
-        return itemList.size();
+        return userList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return itemList.get(position);
+        return userList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return Integer.parseInt(itemList.get(position).getId());
+        return userList.get(position).getId(); // id doesn't have meaning
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = layoutInflater.inflate(R.layout.row_list_item, parent ,false);
 
-        ((TextView)convertView.findViewById(R.id.txv_name)).setText(itemList.get(position).getName());
+        ((TextView)convertView.findViewById(R.id.txv_name)).setText(userList.get(position).getUserName());
 
         return convertView;
     }

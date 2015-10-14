@@ -2,7 +2,8 @@
 <resources>
     <color name="ColorPrimary">#43a415</color>
     <color name="ColorPrimaryDark">#008000</color>
-    <color name="ColorAccent">#f7e4ee</color>
+    <color name="ColorAccent">#33e</color>
+    <color name="ColorBackground">#f7e4ee</color>
 
     <color name="login_button">#FDAB4F</color>
     <color name="chat_me">#86D9FF</color>

@@ -1,6 +1,5 @@
 package com.travelcircle;
 
-import android.app.DatePickerDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,14 +8,9 @@ import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapFragment;
@@ -24,6 +18,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.magnet.mmx.client.api.MMXChannel;
 import com.magnet.mmx.client.common.TopicExistsException;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -33,21 +35,6 @@ import com.squareup.okhttp.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 /**
  * Created by T on 2015/09/26.
  */
@@ -56,6 +43,7 @@ public class TabFragment1 extends Fragment {
     private static final LatLng HAKATA = new LatLng(33.590002, 130.42062199999998);
 
     private GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
 
     private EditText mChannelName = null;
     private AtomicBoolean mSaving = new AtomicBoolean(false);
@@ -63,8 +51,6 @@ public class TabFragment1 extends Fragment {
     private View _view;
 
     private List<String> listArea;
-
-    private Item item;
 
     public String area, date;
 
@@ -92,6 +78,7 @@ public class TabFragment1 extends Fragment {
         if (mMap == null) {
             /*** Try to obtain the map from the SupportMapFragment.***/
             mMap = ((MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.fragment_map)).getMap();
+
             /*** Check if we were successful in obtaining the map. ***/
             if (mMap != null) {
                 setUpMap();
@@ -103,14 +90,9 @@ public class TabFragment1 extends Fragment {
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.setIndoorEnabled(false);
         mMap.setMyLocationEnabled(true);
-        mMap.addMarker(new MarkerOptions()
-                .position(TOKYO)
-                .title("Tokyo Station")
-                .snippet("testteset")
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
-                .anchor(0.5f, 0.5f));
 
-        moveCameraToLatLun(false, TOKYO);
+        showTestUsersOnMap();
+
 
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
@@ -119,6 +101,26 @@ public class TabFragment1 extends Fragment {
             }
         });
     }
+
+    private void showTestUsersOnMap() {
+        //post
+
+        mMap.addMarker(new MarkerOptions()
+                .position(TOKYO)
+                .title("Test User")
+                .snippet("Hello, I am a test user.")
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                .anchor(0.5f, 0.5f));
+        //get from parse
+
+
+
+        mMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
+
+        moveCameraToLatLun(false, TOKYO);
+    }
+
+
 
     private void moveCameraToLatLun(boolean isAnimation, LatLng target) {
         CameraUpdate camera = CameraUpdateFactory

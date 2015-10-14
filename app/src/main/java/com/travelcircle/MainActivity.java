@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
     public static final String KEY_MESSAGE_TEXT = "content";
-    static final int REQUEST_LOGIN = 1;
+    private static final int REQUEST_LOGIN = 1;
 
     public static String URL = "http://52.27.180.186:3003/Item";
 

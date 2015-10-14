@@ -29,7 +29,7 @@ dependencies {
     compile 'com.android.support:design:22.2.0'
     //compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.google.android.gms:play-services:8.1.0'
-    //compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile('com.magnet.mmx:magnet-mmx-client-android:1.9.1@aar') {
         transitive = true
     }
