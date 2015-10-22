@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by T on 2015/09/26.
  */
-public class TabFragment2 extends Fragment {
+public class PageChannelsFragment extends Fragment {
 
     private View _view;
 
@@ -44,6 +44,13 @@ public class TabFragment2 extends Fragment {
     public EditText mPublishText;
     public AtomicBoolean mScrollToBottom = new AtomicBoolean(true);
 
+    public static PageChannelsFragment newInstance(Context context) {
+        PageChannelsFragment fragment = new PageChannelsFragment();
+        Bundle args = new Bundle();
+        args.putInt(context.getString(R.string.section_number), 2);
+        return fragment;
+    }
+
     private MMX.EventListener mListener = new MMX.EventListener() {
         public boolean onMessageReceived(com.magnet.mmx.client.api.MMXMessage mmxMessage) {
             MMXChannel channel = mmxMessage.getChannel();
@@ -56,7 +63,7 @@ public class TabFragment2 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        _view = inflater.inflate(R.layout.tab_fragment_2, container, false);
+        _view = inflater.inflate(R.layout.fragment_page_channels, container, false);
 
         Log.d("TabFragment2", "onCreate() called");
 

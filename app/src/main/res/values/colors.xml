@@ -4,6 +4,8 @@
     <color name="ColorPrimaryDark">#008000</color>
     <color name="ColorAccent">#33e</color>
     <color name="ColorBackground">#f7e4ee</color>
+    <color name="ColorDark1">#552211</color>
+    <color name="ColorDark2">#112211</color>
 
     <color name="login_button">#FDAB4F</color>
     <color name="chat_me">#86D9FF</color>

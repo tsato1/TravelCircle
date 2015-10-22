@@ -13,8 +13,8 @@ public class PagerAdapter extends FragmentPagerAdapter
 {
     int mNumOfTabs;
     ArrayList<Fragment> fragmentList;
-    TabFragment1 tab1;
-    TabFragment2 tab2;
+    PageMapFragment tab1;
+    PageChannelsFragment tab2;
 
     public PagerAdapter(FragmentManager fm, int NumOfTabs)
     {
@@ -28,10 +28,10 @@ public class PagerAdapter extends FragmentPagerAdapter
         switch (position)
         {
             case 0:
-                tab1 = new TabFragment1();
+                tab1 = new PageMapFragment();
                 return tab1;
             case 1:
-                tab2 = new TabFragment2();
+                tab2 = new PageChannelsFragment();
                 return tab2;
             default:
                 return null;
@@ -44,11 +44,11 @@ public class PagerAdapter extends FragmentPagerAdapter
         return mNumOfTabs;
     }
 
-    public TabFragment1 getFragment1(){
+    public PageMapFragment getFragment1(){
         return tab1;
     }
 
-    public TabFragment2 getFragment2(){
+    public PageChannelsFragment getFragment2(){
         return tab2;
     }
 }

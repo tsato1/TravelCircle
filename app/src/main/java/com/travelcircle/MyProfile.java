@@ -9,17 +9,19 @@ import android.util.Base64;
 import android.util.Log;
 
 import com.google.android.gms.vision.barcode.Barcode;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
+//import com.squareup.okhttp.MediaType;
+//import com.squareup.okhttp.OkHttpClient;
+//import com.squareup.okhttp.Request;
+//import com.squareup.okhttp.RequestBody;
+//import com.squareup.okhttp.Response;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Blob;
 
 /**
@@ -122,45 +124,61 @@ public class MyProfile extends UserProfile{
     }
 
 
-    class postDataToParse extends AsyncTask<String, String, String>
-    {
-        @Override
-        protected String doInBackground(String... arg0) {
-            JSONObject jsonObject = new JSONObject();
-
-            try {
-                jsonObject.put(PREF_USERNAME, getUserName());
-                jsonObject.put(PREF_LOCATION, getLocation());
-                jsonObject.put(PREF_MESSAGE, getMessage());
-                jsonObject.put(PREF_PHOTO, getPhoto());
-            } catch(JSONException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                OkHttpClient client = new OkHttpClient();
-                Request request = new Request.Builder()
-                        .url(MainActivity.URL)
-                        .post(RequestBody.create(
-                                        MediaType.parse("application/json; charset=utf-8"),
-                                        jsonObject.toString()
-                                )
-                        )
-                        .build();
-                Response response = client.newCall(request).execute();
-                if (response.isSuccessful()){
-                    response.body().string();
-                    Log.i("Section1Fragment", "doPost success");
-                }
-            }catch(IOException e){
-                Log.e("Section1Fragment", "error orz:" + e.getMessage(), e);
-            }
-
-            return "";
-        }
-
-        protected void onPostExecute(String str) {
-
-        }
-    }
+//    public class postDataToParse extends AsyncTask<String, String, String>
+//    {
+//        @Override
+//        protected String doInBackground(String... arg0) {
+//URL url = null;
+//            HttpURLConnection con = null;
+//            try {
+//                con = (HttpURLConnection) url.openConnection();
+//// リクエストメソッドの設定
+//                con.setRequestMethod("GET");
+//// リダイレクトを自動で許可しない設定
+//                con.setInstanceFollowRedirects(false);
+//// ヘッダーの設定(複数設定可能)
+//                con.setRequestProperty("Accept-Language", "jp");
+//
+//// 接続 //todo
+//                con.connect();
+//            } catch (IOException e) {
+//
+//            }
+//            JSONObject jsonObject = new JSONObject();
+//
+//            try {
+//                jsonObject.put(PREF_USERNAME, getUserName());
+//                jsonObject.put(PREF_LOCATION, getLocation());
+//                jsonObject.put(PREF_MESSAGE, getMessage());
+//                jsonObject.put(PREF_PHOTO, getPhoto());
+//            } catch(JSONException e) {
+//                e.printStackTrace();
+//            }
+//
+//            try {
+//                OkHttpClient client = new OkHttpClient();
+//                Request request = new Request.Builder()
+//                        .url(MainActivity.URL)
+//                        .post(RequestBody.create(
+//                                        MediaType.parse("application/json; charset=utf-8"),
+//                                        jsonObject.toString()
+//                                )
+//                        )
+//                        .build();
+//                Response response = client.newCall(request).execute();
+//                if (response.isSuccessful()){
+//                    response.body().string();
+//                    Log.i("Section1Fragment", "doPost success");
+//                }
+//            }catch(IOException e){
+//                Log.e("Section1Fragment", "error orz:" + e.getMessage(), e);
+//            }
+//
+//            return "";
+//        }
+//
+//        protected void onPostExecute(String str) {
+//
+//        }
+//    }
 }

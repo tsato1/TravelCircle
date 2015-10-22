@@ -1,6 +1,6 @@
 package com.travelcircle;
 
-import android.os.AsyncTask;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -16,29 +16,27 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.GoogleMap;
 import com.magnet.mmx.client.api.MMXChannel;
 import com.magnet.mmx.client.common.TopicExistsException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
+import com.parse.ParseObject;
+//import com.squareup.okhttp.MediaType;
+//import com.squareup.okhttp.OkHttpClient;
+//import com.squareup.okhttp.Request;
+//import com.squareup.okhttp.RequestBody;
+//import com.squareup.okhttp.Response;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Created by T on 2015/09/26.
  */
-public class TabFragment1 extends Fragment {
+public class PageMapFragment extends Fragment {
     private static final LatLng TOKYO = new LatLng(35.681382, 139.766084);
     private static final LatLng HAKATA = new LatLng(33.590002, 130.42062199999998);
 
@@ -54,6 +52,13 @@ public class TabFragment1 extends Fragment {
 
     public String area, date;
 
+    public static PageMapFragment newInstance(Context context) {
+        PageMapFragment fragment = new PageMapFragment();
+        Bundle args = new Bundle();
+        args.putInt(context.getString(R.string.section_number), 1);
+        return fragment;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (_view != null) {
@@ -64,7 +69,7 @@ public class TabFragment1 extends Fragment {
         }
 
         try {
-            _view = inflater.inflate(R.layout.tab_fragment_1, container, false);
+            _view = inflater.inflate(R.layout.fragment_page_map, container, false);
         } catch (InflateException e) {
             e.printStackTrace();
         }
@@ -87,7 +92,6 @@ public class TabFragment1 extends Fragment {
     }
 
     private void setUpMap() {
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.setIndoorEnabled(false);
         mMap.setMyLocationEnabled(true);
 
@@ -103,17 +107,20 @@ public class TabFragment1 extends Fragment {
     }
 
     private void showTestUsersOnMap() {
-        //post
+
+        ParseObject userObject = new ParseObject("UserObject");
+        userObject.put("username", "testuser");
+        userObject.put("latitude", TOKYO.latitude);
+        userObject.put("longitude", TOKYO.longitude);
+        userObject.put("message", "Hello, I am a test user.");
+        userObject.saveInBackground();
 
         mMap.addMarker(new MarkerOptions()
-                .position(TOKYO)
-                .title("Test User")
-                .snippet("Hello, I am a test user.")
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                .position(new LatLng((Double)userObject.get("latitude"), (Double)userObject.get("longitude")))
+                .title((String)userObject.get("username"))
+                .snippet((String)userObject.get("message"))
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)) // todo replace with userObject.get("photo")
                 .anchor(0.5f, 0.5f));
-        //get from parse
-
-
 
         mMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
 

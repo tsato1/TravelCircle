@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,8 +38,14 @@ public class MapUserInfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void render(Marker marker, View view) {
-        ImageView imvBadge = (ImageView) view.findViewById(R.id.imv_badge);
-        imvBadge.setImageResource(R.mipmap.ic_launcher);
+        ImageButton btnBadge = (ImageButton) view.findViewById(R.id.btn_badge);
+        btnBadge.setImageResource(R.mipmap.ic_launcher);
+        btnBadge.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
 
         TextView txvTitle = (TextView) view.findViewById(R.id.txv_title);
         txvTitle.setText(marker.getTitle());
