@@ -1,6 +1,8 @@
 package com.travelcircle;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -14,9 +16,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Marker;
 import com.magnet.mmx.client.api.MMXChannel;
 import com.magnet.mmx.client.common.TopicExistsException;
 
@@ -26,11 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.ParseObject;
-//import com.squareup.okhttp.MediaType;
-//import com.squareup.okhttp.OkHttpClient;
-//import com.squareup.okhttp.Request;
-//import com.squareup.okhttp.RequestBody;
-//import com.squareup.okhttp.Response;
 
 
 /**
@@ -40,17 +40,13 @@ public class PageMapFragment extends Fragment {
     private static final LatLng TOKYO = new LatLng(35.681382, 139.766084);
     private static final LatLng HAKATA = new LatLng(33.590002, 130.42062199999998);
 
-    private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
+    private GoogleMap googleMap;
+    private MapView mMapView;
 
     private EditText mChannelName = null;
     private AtomicBoolean mSaving = new AtomicBoolean(false);
 
     private View _view;
-
-    private List<String> listArea;
-
-    public String area, date;
 
     public static PageMapFragment newInstance(Context context) {
         PageMapFragment fragment = new PageMapFragment();
@@ -61,16 +57,15 @@ public class PageMapFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (_view != null) {
-            ViewGroup parent = (ViewGroup)_view.getParent();
-            if (parent != null) {
-                parent.removeView(_view);
-            }
-        }
+        _view = inflater.inflate(R.layout.fragment_page_map, container, false);
+
+        mMapView = (MapView) _view.findViewById(R.id.map_view);
+        mMapView.onCreate(savedInstanceState);
+        mMapView.onResume();
 
         try {
-            _view = inflater.inflate(R.layout.fragment_page_map, container, false);
-        } catch (InflateException e) {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -78,27 +73,47 @@ public class PageMapFragment extends Fragment {
         return _view;
     }
 
-    private void setUpMapIfNeeded() {
-        /*** Do a null check to confirm that we have not already instantiated the map. ***/
-        if (mMap == null) {
-            /*** Try to obtain the map from the SupportMapFragment.***/
-            mMap = ((MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.fragment_map)).getMap();
+    @Override
+    public void onResume() {
+        super.onResume();
+        mMapView.onResume();
+    }
 
-            /*** Check if we were successful in obtaining the map. ***/
-            if (mMap != null) {
+    @Override
+    public void onPause() {
+        super.onPause();
+        mMapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
+    }
+
+    public void setUpMapIfNeeded() {
+        if (googleMap == null) {
+            googleMap = mMapView.getMap();
+
+            if (googleMap != null) {
                 setUpMap();
             }
         }
     }
 
     private void setUpMap() {
-        mMap.setIndoorEnabled(false);
-        mMap.setMyLocationEnabled(true);
+        googleMap.setIndoorEnabled(false);
+        googleMap.setMyLocationEnabled(true);
 
         showTestUsersOnMap();
 
-
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng point) {
                 moveCameraToLatLun(true, HAKATA);
@@ -106,8 +121,16 @@ public class PageMapFragment extends Fragment {
         });
     }
 
-    private void showTestUsersOnMap() {
+    private void createTestUsers() {
+        ParseObject userObject = new ParseObject("UserObject");
+        userObject.put("username", "testuser");
+        userObject.put("latitude", TOKYO.latitude);
+        userObject.put("longitude", TOKYO.longitude);
+        userObject.put("message", "Hello, I am a test user.");
+        userObject.saveInBackground();
+    }
 
+    private void showTestUsersOnMap() {
         ParseObject userObject = new ParseObject("UserObject");
         userObject.put("username", "testuser");
         userObject.put("latitude", TOKYO.latitude);
@@ -115,19 +138,37 @@ public class PageMapFragment extends Fragment {
         userObject.put("message", "Hello, I am a test user.");
         userObject.saveInBackground();
 
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng((Double)userObject.get("latitude"), (Double)userObject.get("longitude")))
-                .title((String)userObject.get("username"))
-                .snippet((String)userObject.get("message"))
+        googleMap.addMarker(new MarkerOptions()
+                .position(new LatLng((Double) userObject.get("latitude"), (Double) userObject.get("longitude")))
+                .title((String) userObject.get("username"))
+                .snippet((String) userObject.get("message"))
                 .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)) // todo replace with userObject.get("photo")
                 .anchor(0.5f, 0.5f));
 
-        mMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
+        googleMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
+        googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
 
         moveCameraToLatLun(false, TOKYO);
     }
 
+    class InfoWindowClickListener implements GoogleMap.OnInfoWindowClickListener {
+        @Override
+        public void onInfoWindowClick(Marker marker) {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
+            dialog.setTitle("Do you want to open a chat room with this person?");
+            dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface i, int which) {
+                    //todo check if the channel exists
+                    //todo if not make one
+                    //todo navigate to the chatroom fragment
 
+                }
+            });
+            dialog.setNegativeButton(R.string.no, null);
+            dialog.show();
+        }
+    }
 
     private void moveCameraToLatLun(boolean isAnimation, LatLng target) {
         CameraUpdate camera = CameraUpdateFactory
@@ -136,136 +177,9 @@ public class PageMapFragment extends Fragment {
                 .zoom(15.0f).build());
 
         if (isAnimation) {
-            mMap.animateCamera(camera);
+            googleMap.animateCamera(camera);
         } else {
-            mMap.moveCamera(camera);
+            googleMap.moveCamera(camera);
         }
-    }
-
-
-
-//    class postData extends AsyncTask<String, String, String> {
-//        @Override
-//        protected String doInBackground(String... arg0) {
-//            Log.d("Fragment1", "Posting data");
-//
-//            JSONObject jsonObject = new JSONObject();
-//
-//            try {
-//                jsonObject.put(Item.ITEM_NAME, item.getName());
-//                jsonObject.put(Item.ITEM_DATE, item.getDate());
-//                jsonObject.put(Item.ITEM_AREA, item.getArea());
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//
-//            try {
-//                OkHttpClient client = new OkHttpClient();
-//                Request request = new Request.Builder()
-//                        .url(MainActivity.URL)
-//                        .post(RequestBody.create(
-//                                MediaType.parse("application/json; charset=utf-8"),
-//                                jsonObject.toString())
-//                        )
-//                        .build();
-//                Response response = client.newCall (request).execute();
-//                Log.d("responce", response.toString());
-//                if (response.isSuccessful()) {
-//                    response.body().string();
-//                    Log.d("Post Request", "Post success");
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                Log.e("Fragment1", "Post failed");
-//            }
-//
-//            return "";
-//        }
-//
-//        protected void onPostExecute(String str) {
-//        }
-// }
-
-    public void doSave(View view) {
-        Log.d("Fragment1", "dosave() called");
-        if (mSaving.compareAndSet(false, true)) {
-            final String channelName = "channelname";//mChannelName.getText().toString();
-            if (channelName.isEmpty()) {
-                mChannelName.setError(getString(R.string.error_channel_name_required));
-                return;
-            }
-            MMXChannel.create(channelName, channelName, true, new MMXChannel.OnFinishedListener<MMXChannel>() {
-                        public void onSuccess(MMXChannel mmxChannel) {
-                            //add tags
-                            //SparseBooleanArray checkedPositions = mTagList.getCheckedItemPositions();
-//                            final HashSet<String> tags = new HashSet<String>();
-//                            for (int i = 0; i < checkedPositions.size(); i++) {
-//                                int position = checkedPositions.keyAt(i);
-//                                boolean checked = checkedPositions.valueAt(i);
-//                                if (checked) {
-//                                    Log.d("Fragment1", "create(): adding tag: " + mTagArray[position]);
-//                                    tags.add(mTagArray[position]);
-//                                }
-//                            }
-//                            if (tags.size() > 0) {
-//                                mmxChannel.setTags(tags, new MMXChannel.OnFinishedListener<Void>() {
-//                                    public void onSuccess(Void aVoid) {
-//                                        mSaving.set(false);
-//                                        getActivity().finish();
-//
-//                                    }
-//
-//                                    public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-//                                        Toast.makeText(getActivity(), "Channel '" + channelName + "' created, but unable to add tags: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-//                                        mSaving.set(false);
-//                                        getActivity().finish();
-//                                    }
-//                                });
-//                                updateView();
-//                            } else
-                            {
-                                mSaving.set(false);
-                                getActivity().finish();
-                            }
-                        }
-
-                        public void onFailure(MMXChannel.FailureCode failureCode, final Throwable throwable) {
-                            getActivity().runOnUiThread(new Runnable() {
-                                public void run() {
-                                    if (throwable instanceof TopicExistsException) {
-                                        mChannelName.setError(getString(R.string.error_channel_already_exists));
-                                    } else if (throwable.getCause() instanceof TopicExistsException) {
-                                        mChannelName.setError(throwable.getMessage());
-                                    }
-                                    updateViewAddChannel();
-                                }
-                            });
-                            mSaving.set(false);
-                        }
-                    });
-            updateViewAddChannel();
-        }
-    }
-
-    public void updateViewAddChannel() {
-        Log.d("Fragment1", "updateView() called");
-        getActivity().runOnUiThread(new Runnable() {
-            public void run() {
-                boolean disableViews = mSaving.get();
-                mChannelName.setEnabled(!disableViews);
-                //mTagList.setEnabled(!disableViews);
-            }
-        });
-    }
-
-    public void updateViewUpdateChannel() {
-        getActivity().runOnUiThread(new Runnable() {
-            public void run() {
-//                mAdapter = new ChannelHeaderListAdapter(ChannelListActivity.this,
-//                        mChannelsManager.getSubscribedChannels(mSearchFilter.getText().toString()),
-//                        mChannelsManager.getOtherChannels(mSearchFilter.getText().toString()));
-//                mListView.setAdapter(mAdapter);
-            }
-        });
     }
 }

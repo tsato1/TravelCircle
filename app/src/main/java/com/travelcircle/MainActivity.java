@@ -1,50 +1,40 @@
 package com.travelcircle;
 
-import android.app.Fragment;
 import android.content.Intent;
 //import android.app.FragmentManager;
+import android.content.res.Configuration;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
-import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
 
-import com.magnet.mmx.client.api.ListResult;
 import com.magnet.mmx.client.api.MMX;
-import com.magnet.mmx.client.api.MMXChannel;
 import com.parse.Parse;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+public class MainActivity extends AppCompatActivity
+        /*implements NavigationDrawerFragment.NavigationDrawerCallbacks*/ {
+    private static final String TAG_FRAGMENT_MAP = "tag_map";
+    private static final String TAG_FRAGMENT_CHAT = "tag_chat";
+    private static final String TAG_FRAGMENT_LIST = "tag_list";
+    private static final String TAG_FRAGMENT_PROFILE = "tag_profile";
 
-public class MainActivity extends AppCompatActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
     public static final String KEY_MESSAGE_TEXT = "content";
     private static final int REQUEST_LOGIN = 1;
-    public static String URL = "http://52.27.180.186:3003/Item";
 
-    private NavigationDrawerFragment mNavigationDrawerFragment;
-    private CharSequence mTitle;
-
-
-//    private DrawerLayout mDrawerLayout;
-//    private ListView mDrawerList;
-
-//
-//    private PagerAdapter adapter;
-//    private PageMapFragment pageMapFragment;
-//    private PageChannelsFragment pageChannelFragment;
-
-
+    private Toolbar toolbar;
+    private DrawerLayout mDrawer;
+    private NavigationView navigationView;
+    private ActionBarDrawerToggle drawerToggle;
+    private MyProfile mProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,58 +44,155 @@ public class MainActivity extends AppCompatActivity implements NavigationDrawerF
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "GkmNnoUZGBwfQJd3xsGgPIUachckL2eddHN3wrvR", "EPMcSnJnN8MhBBz7TkLKEyBwwOx0xNWHm6Blg9jW");
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerToggle = setupDrawerToggle();
+        mDrawer.setDrawerListener(drawerToggle);
+
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
+        setupDrawerContent(navigationView);
+
+        setupProfileOnDrawer();
+
+        mDrawer.openDrawer(GravityCompat.START);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container_frame, PageMapFragment.newInstance(this)).commit();
     }
 
+    private void setupProfileOnDrawer() {
+        mProfile = MyProfile.getInstance(this);
+        ImageView imvProfile = (ImageView) findViewById(R.id.imv_profile);
+        imvProfile.setImageBitmap(mProfile.getPhoto());
+        TextView txvUsername = (TextView) findViewById(R.id.txv_username);
+        txvUsername.setText(mProfile.getUserName());
+        TextView txvMessage = (TextView) findViewById(R.id.txv_message);
+        txvMessage.setText(mProfile.getMessage());
+    }
 
     @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        if (position == 0) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container_frame, PageMapFragment.newInstance(this))
-                    .commit();
-        }
-        else if (position == 1) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container_frame, PageChannelsFragment.newInstance(this))
-                    .commit();
-        }
-        else if (position == 2) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container_frame, PageProfileFragment.newInstance(this))
-                    .commit();
-        }
+    protected void onPostCreate(Bundle savedInstaceState) {
+        super.onPostCreate(savedInstaceState);
+        drawerToggle.syncState();
     }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private ActionBarDrawerToggle setupDrawerToggle() {
+        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+    }
+
+    private void setupDrawerContent(NavigationView navigationView) {
+        navigationView.setNavigationItemSelectedListener(
+                new NavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        selectDrawerItem(menuItem);
+                        return true;
+                    }
+                }
+        );
+    }
+
+    public void selectDrawerItem(MenuItem menuItem) {
+        Fragment fragment = null;
+
+        Class fragmentClass;
+        switch(menuItem.getItemId()) {
+            case R.id.nav_map_fragment:
+                fragmentClass = PageMapFragment.class;
+                break;
+            case R.id.nav_channels_fragment:
+                fragmentClass = PageChannelsFragment.class;
+                break;
+            case R.id.nav_chatroom_fragment:
+                fragmentClass = PageChatRoomFragment.class;
+                break;
+            case R.id.nav_profile_fragment:
+                fragmentClass = PageProfileFragment.class;
+                break;
+            case R.id.nav_settings_fragment:
+                fragmentClass = PageMapFragment.class;
+                break;
+            case R.id.nav_logout:
+                return;
+            default:
+                fragmentClass = PageMapFragment.class;
+        }
+
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container_frame, fragment).commit();
+
+        // Highlight the selected item, update the title, and close the drawer
+        menuItem.setChecked(true);
+        setTitle(menuItem.getTitle());
+        mDrawer.closeDrawers();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+//    @Override
+//    public void onNavigationDrawerItemSelected(int position) {
+//        mFragmentManager = getSupportFragmentManager();
+//
+//        if (position == 0) {
+//            mFragmentManager.beginTransaction()
+//                    .replace(R.id.container_frame, PageMapFragment.newInstance(this), TAG_FRAGMENT_MAP)
+//                    .commit();
+//        }
+//        else if (position == 1) {
+//            mFragmentManager.beginTransaction()
+//                    .replace(R.id.container_frame, PageChatRoomFragment.newInstance(this), TAG_FRAGMENT_CHAT)
+//                    .commit();
+//        }
+//        else if (position == 2) {
+//            mFragmentManager.beginTransaction()
+//                    .replace(R.id.container_frame, PageChannelListFragment.newInstance(this), TAG_FRAGMENT_LIST)
+//                    .commit();
+//        }
+//        else if (position == 3) {
+//            mFragmentManager.beginTransaction()
+//                    .replace(R.id.container_frame, PageProfileFragment.newInstance(this), TAG_FRAGMENT_PROFILE)
+//                    .commit();
+//        }
+//    }
 
     protected void onResume() {
         super.onResume();
+
         if (MMX.getCurrentUser() == null) {
             Intent loginIntent = new Intent(this, LoginActivity.class);
             startActivityForResult(loginIntent, REQUEST_LOGIN);
-        } else {
-            //populate or update the view
-            updateChannelList();
         }
     }
 
-    private synchronized void updateChannelList() {
-//        MMXChannel.getAllPublicChannels(0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
-//            public void onSuccess(ListResult<MMXChannel> mmxChannelListResult) {
-//                ChannelsManager.getInstance(MainActivity.this).setChannels(mmxChannelListResult.items);
-//                pageMapFragment.updateViewUpdateChannel();
-//            }
+    /* called from NavigationDrawerFragment.java */
+    public void saveUpdatedProfile() {
+//        PageProfileFragment fragment = (PageProfileFragment) mFragmentManager.findFragmentByTag(TAG_FRAGMENT_PROFILE);
+//        fragment.saveUpdatedProfile();
 //
-//            public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-//                Toast.makeText(MainActivity.this, "Exception: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-//                pageMapFragment.updateViewUpdateChannel();
-//            }
-//        });
+//        mFragmentManager.beginTransaction()
+//                .replace(R.id.container_frame, PageProfileFragment.newInstance(this))
+//                .commit();
     }
 
     public void doPublish(final View view) {

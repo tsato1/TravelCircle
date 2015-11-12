@@ -1,7 +1,8 @@
 package com.travelcircle;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.text.Layout;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
+import android.util.Log;
 /**
  * Created by T on 2015/10/12.
  */
@@ -20,7 +22,6 @@ public class MapUserInfoAdapter implements GoogleMap.InfoWindowAdapter {
     private LayoutInflater _layoutInflater;
 
     public MapUserInfoAdapter (Context context) {
-        //mWindow = getLayoutInflater().inflate(R.layout.map_info_window, null);
         this._context = context;
         this._layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
@@ -38,14 +39,8 @@ public class MapUserInfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void render(Marker marker, View view) {
-        ImageButton btnBadge = (ImageButton) view.findViewById(R.id.btn_badge);
-        btnBadge.setImageResource(R.mipmap.ic_launcher);
-        btnBadge.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
+        ImageView imvBadge = (ImageView) view.findViewById(R.id.imv_badge);
+        imvBadge.setImageResource(R.mipmap.ic_launcher);
 
         TextView txvTitle = (TextView) view.findViewById(R.id.txv_title);
         txvTitle.setText(marker.getTitle());

@@ -13,25 +13,47 @@
     <string name="desc_app_logo">App logo</string>
     <string name="section_number">section_number</string>
 
-
-    <!-- Strings related to navigation drawer -->
     <string name="map">Map</string>
     <string name="channels">Channels</string>
+    <string name="room">Chat Room</string>
     <string name="profile">Profile</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string name="action_subscribe">Subscribe</string>
+    <string name="action_unsubscribe">Unsubscribe</string>
+    <string name="action_delete">Delete</string>
+
+    <string name="channel_list_header_subscriptions">Subscriptions</string>
+    <string name="channel_list_header_other_channels">Other Channels</string>
+
+
+    <!-- Strings related to navigation drawer -->
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
 
     <!-- Strings related to login -->
     <string name="prompt_email">Username</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="dlg_signout_title">Sign Out</string>
+    <string name="dlg_signout_message">You must be signed in to post to channels.  Continue to sign out?</string>
     <string name="action_register">Register</string>
 
+    <!-- questions -->
+    <string name="dlg_delete_title">Delete channel?</string>
+
+    <!-- errors -->
     <string name="error_invalid_email">This username is invalid</string>
     <string name="error_invalid_email_exists">This username is taken</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="error_unable_to_delete_channel">Unable to delete channel: </string>
 </resources>

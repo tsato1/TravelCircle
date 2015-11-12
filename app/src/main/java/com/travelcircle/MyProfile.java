@@ -1,13 +1,16 @@
 package com.travelcircle;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.vision.barcode.Barcode;
 //import com.squareup.okhttp.MediaType;
 //import com.squareup.okhttp.OkHttpClient;
@@ -45,7 +48,7 @@ public class MyProfile extends UserProfile{
     private int mId = 0;
     private byte[] mPassword = null;
     private Bitmap mPhoto = null;
-    private Barcode.GeoPoint mLocation = null;
+    private LatLng mLocation = null;
     private String mMessage = "";
 
     private MyProfile(Context context) {
@@ -59,6 +62,8 @@ public class MyProfile extends UserProfile{
         setUsername(mSharedPrefs.getString(PREF_USERNAME, null));
         String password = mSharedPrefs.getString(PREF_PASSWORD, null);
         mPassword = password != null ? password.getBytes() : null;
+        setPhoto(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_launcher));
+        setMessage("Hi, I am a new user!");
     }
 
     public static synchronized MyProfile getInstance(Context context) {
@@ -76,13 +81,13 @@ public class MyProfile extends UserProfile{
         return super.getUsername();
     }
 
-    public byte[] getPassword() {
-        return mPassword;
-    }
-
     public void setUsername(String username) {
         super.setUsername(username);
         mSharedPrefs.edit().putString(PREF_USERNAME, username).apply();
+    }
+
+    public byte[] getPassword() {
+        return mPassword;
     }
 
     public void setPassword(byte[] password) {
@@ -90,14 +95,20 @@ public class MyProfile extends UserProfile{
         mSharedPrefs.edit().putString(PREF_PASSWORD, new String(password)).apply();
     }
 
-    public void setLocation(Barcode.GeoPoint location) {
-        mLocation = location;
-        mSharedPrefs.edit().putFloat(PREF_LAT, (float)location.lat);
-        mSharedPrefs.edit().putFloat(PREF_LNG, (float)location.lng);
+    public LatLng getLocation() {
+        return mLocation;
     }
 
-    public Barcode.GeoPoint getLocation() {
-        return mLocation;
+    public void setLocation(LatLng location) {
+        mLocation = location;
+        mSharedPrefs.edit().putFloat(PREF_LAT, (float)location.latitude);
+        mSharedPrefs.edit().putFloat(PREF_LNG, (float)location.longitude);
+    }
+
+    public Bitmap getPhoto() {
+        byte[] bytes = Base64.decode(mSharedPrefs.getString(PREF_PHOTO, "").getBytes(), Base64.DEFAULT);
+        mPhoto = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        return mPhoto;
     }
 
     public void setPhoto(Bitmap photo) {
@@ -108,77 +119,12 @@ public class MyProfile extends UserProfile{
         mSharedPrefs.edit().putString(PREF_PHOTO, bitmapString).commit();
     }
 
-    public Bitmap getPhoto() {
-        byte[] bytes = Base64.decode(mSharedPrefs.getString(PREF_PHOTO, "").getBytes(), Base64.DEFAULT);
-        mPhoto = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        return mPhoto;
+    public String getMessage() {
+        return mMessage;
     }
 
     public void setMessage(String message) {
         mMessage = message;
         mSharedPrefs.edit().putString(PREF_MESSAGE, message);
     }
-
-    public String getMessage() {
-        return mMessage;
-    }
-
-
-//    public class postDataToParse extends AsyncTask<String, String, String>
-//    {
-//        @Override
-//        protected String doInBackground(String... arg0) {
-//URL url = null;
-//            HttpURLConnection con = null;
-//            try {
-//                con = (HttpURLConnection) url.openConnection();
-//// リクエストメソッドの設定
-//                con.setRequestMethod("GET");
-//// リダイレクトを自動で許可しない設定
-//                con.setInstanceFollowRedirects(false);
-//// ヘッダーの設定(複数設定可能)
-//                con.setRequestProperty("Accept-Language", "jp");
-//
-//// 接続 //todo
-//                con.connect();
-//            } catch (IOException e) {
-//
-//            }
-//            JSONObject jsonObject = new JSONObject();
-//
-//            try {
-//                jsonObject.put(PREF_USERNAME, getUserName());
-//                jsonObject.put(PREF_LOCATION, getLocation());
-//                jsonObject.put(PREF_MESSAGE, getMessage());
-//                jsonObject.put(PREF_PHOTO, getPhoto());
-//            } catch(JSONException e) {
-//                e.printStackTrace();
-//            }
-//
-//            try {
-//                OkHttpClient client = new OkHttpClient();
-//                Request request = new Request.Builder()
-//                        .url(MainActivity.URL)
-//                        .post(RequestBody.create(
-//                                        MediaType.parse("application/json; charset=utf-8"),
-//                                        jsonObject.toString()
-//                                )
-//                        )
-//                        .build();
-//                Response response = client.newCall(request).execute();
-//                if (response.isSuccessful()){
-//                    response.body().string();
-//                    Log.i("Section1Fragment", "doPost success");
-//                }
-//            }catch(IOException e){
-//                Log.e("Section1Fragment", "error orz:" + e.getMessage(), e);
-//            }
-//
-//            return "";
-//        }
-//
-//        protected void onPostExecute(String str) {
-//
-//        }
-//    }
 }

@@ -5,6 +5,9 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.magnet.mmx.client.api.MMX;
 import com.magnet.mmx.client.api.MMXUser;
 
@@ -122,6 +126,8 @@ public class LoginActivity extends Activity {
                 MMXUser user = new MMXUser.Builder().username(username).build();
                 user.register(password.getBytes(), new MMXUser.OnFinishedListener<Void>() {
                     public void onSuccess(Void aVoid) {
+                        LatLng location = new LatLng(0, 0);
+                        mProfile.setLocation(location);
                         loginHelper(username, password);
                     }
 
