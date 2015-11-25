@@ -6,17 +6,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,11 +33,13 @@ public class PageChannelsFragment extends Fragment {
     static final int REQUEST_LOGIN = 1;
 
     private View _view;
+    private Toolbar mToolbar;
 
     private ChannelsManager mChannelsManager = null;
     private Handler mSearchHandler = new Handler();
     private ListView mListView = null;
-    private EditText mSearchFilter = null;
+    private SearchView mSearchFilter = null;
+    private String mSearchWord = "";
     private ChannelHeaderListAdapter mAdapter = null;
     private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -49,7 +50,7 @@ public class PageChannelsFragment extends Fragment {
         }
     };
 
-    public static PageChannelsFragment newInstance(Context context) {
+    public static PageChannelsFragment newInstance(Context context) { //todo not called?
         PageChannelsFragment fragment = new PageChannelsFragment();
         Bundle args = new Bundle();
         args.putInt(context.getString(R.string.section_number), 3);
@@ -60,32 +61,14 @@ public class PageChannelsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         _view = inflater.inflate(R.layout.fragment_page_channels, container, false);
 
-        mSearchFilter = (EditText) _view.findViewById(R.id.search);
-        mSearchFilter.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        if (mSearchFilter == null) {
+            createSearchView();
+        }
 
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                mSearchHandler.removeCallbacks(null);
-                mSearchHandler.postDelayed(new Runnable() {
-                    public void run() {
-                        updateChannelList();
-                    }
-                }, 700);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
         mChannelsManager = ChannelsManager.getInstance(getActivity());
         mAdapter = new ChannelHeaderListAdapter(getActivity(),
-                mChannelsManager.getSubscribedChannels(mSearchFilter.getText().toString()),
-                mChannelsManager.getOtherChannels(mSearchFilter.getText().toString()));
+                mChannelsManager.getSubscribedChannels(mSearchWord),
+                mChannelsManager.getOtherChannels(mSearchWord));
         mListView = (ListView) _view.findViewById(R.id.channels_list);
         mListView.setOnItemClickListener(mOnItemClickListener);
         MMX.registerListener(mListener);
@@ -93,10 +76,65 @@ public class PageChannelsFragment extends Fragment {
         return _view;
     }
 
+    private void createSearchView() {
+        mToolbar = ((MainActivity) getActivity()).getToolbar();
+        mToolbar.inflateMenu(R.menu.menu_search);
+
+        mSearchFilter = (SearchView) mToolbar.getMenu().findItem(R.id.search_view).getActionView();
+
+        // 虫眼鏡アイコンを最初表示するかの設定
+        mSearchFilter.setIconifiedByDefault(true);
+
+        // Submitボタンを表示するかどうか
+        mSearchFilter.setSubmitButtonEnabled(false);
+
+        if (!mSearchWord.equals("")) {
+            // TextView.setTextみたいなもの
+            mSearchFilter.setQuery(mSearchWord, false);
+        } else {
+            String queryHint = this.getResources().getString(R.string.search_menu_query_hint_text);
+            // placeholderみたいなもの
+            mSearchFilter.setQueryHint(queryHint);
+        }
+
+        mSearchFilter.setOnQueryTextListener(this.onQueryTextListener);
+    }
+
+    private SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String searchWord) {
+            // SubmitボタンorEnterKeyを押されたら呼び出されるメソッド
+            resetSearchFilter();
+
+            return setSearchWord(searchWord);
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            // 入力される度に呼び出される
+            return false;
+        }
+    };
+
+    public void resetSearchFilter() {
+        // 虫眼鏡アイコンを隠す
+        mSearchFilter.setIconified(false);
+        // SearchViewを隠す
+        mSearchFilter.onActionViewCollapsed();
+        // Focusを外す
+        mSearchFilter.clearFocus();
+    }
+
+    private boolean setSearchWord(String searchWord) {
+
+        return false;
+    }
+
     public void onDestroy() {
         MMX.unregisterListener(mListener);
         super.onDestroy();
 
+        mToolbar.getMenu().clear();
     }
 
     public void onResume() {
@@ -105,7 +143,6 @@ public class PageChannelsFragment extends Fragment {
             updateChannelList();
         }
     }
-
 
     private MMX.EventListener mListener = new MMX.EventListener() {
         public boolean onMessageReceived(MMXMessage mmxMessage) {
@@ -133,8 +170,8 @@ public class PageChannelsFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
                 mAdapter = new ChannelHeaderListAdapter(getActivity(),
-                        mChannelsManager.getSubscribedChannels(mSearchFilter.getText().toString()),
-                        mChannelsManager.getOtherChannels(mSearchFilter.getText().toString()));
+                        mChannelsManager.getSubscribedChannels(mSearchWord),
+                        mChannelsManager.getOtherChannels(mSearchWord));
                 mListView.setAdapter(mAdapter);
             }
         });

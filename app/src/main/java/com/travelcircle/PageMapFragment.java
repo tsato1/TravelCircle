@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.util.Log;
 import android.view.InflateException;
 import android.view.LayoutInflater;
@@ -155,7 +155,7 @@ public class PageMapFragment extends Fragment {
         @Override
         public void onInfoWindowClick(Marker marker) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-            dialog.setTitle("Do you want to open a chat room with this person?");
+            dialog.setTitle(R.string.want_to_chat_person);
             dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface i, int which) {

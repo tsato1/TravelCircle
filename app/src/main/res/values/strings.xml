@@ -30,6 +30,8 @@
     <string name="channel_list_header_subscriptions">Subscriptions</string>
     <string name="channel_list_header_other_channels">Other Channels</string>
 
+    <string name="search_menu_query_hint_text">Search</string>
+
 
     <!-- Strings related to navigation drawer -->
     <string name="drawer_open">Open navigation drawer</string>
@@ -48,6 +50,7 @@
 
     <!-- questions -->
     <string name="dlg_delete_title">Delete channel?</string>
+    <string name="want_to_chat_person">Do you want to chat with this person?</string>
 
     <!-- errors -->
     <string name="error_invalid_email">This username is invalid</string>

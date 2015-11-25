@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -54,6 +54,8 @@ public class PageChatRoomFragment extends Fragment {
     private ImageButton mSendButton;
     public AtomicBoolean mScrollToBottom = new AtomicBoolean(true);
 
+    private final String channelName = "";
+
     public static PageChatRoomFragment newInstance(Context context) {
         PageChatRoomFragment fragment = new PageChatRoomFragment();
         Bundle args = new Bundle();
@@ -93,7 +95,6 @@ public class PageChatRoomFragment extends Fragment {
     }
 
     public void prepare() {
-        final String channelName = "channelname";
         Log.d("chat room fragment", "onCreate(): channelName=" + channelName);
         MMXChannel.findPublicChannelsByName(channelName, 0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
             @Override
@@ -115,9 +116,9 @@ public class PageChatRoomFragment extends Fragment {
 
             @Override
             public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-                Toast.makeText(getActivity(), "Failed to load channel: " + channelName + ".  " + failureCode + ", " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("TabFragment2", "Failed to load channel: " + channelName + ".  " + failureCode + ", " + throwable.getMessage());
-                getActivity().finish();
+                Toast.makeText(getActivity(), "Failed to load channel", Toast.LENGTH_LONG).show();
+                Log.e("ChatroomFragment", "Failed to load channel: " + channelName + ".  " + failureCode + ", " + throwable.getMessage());
+                ((MainActivity) getActivity()).openDrawer();
             }
         });
         mProfile = MyProfile.getInstance(getActivity());
@@ -193,6 +194,7 @@ public class PageChatRoomFragment extends Fragment {
         updateChannelItems();
     }
 
+    //todo set up a button on toolbar
     public void doShowMenu(View view) {
         PopupMenu popup = new PopupMenu(getActivity(), view);
         MenuInflater inflater = popup.getMenuInflater();
