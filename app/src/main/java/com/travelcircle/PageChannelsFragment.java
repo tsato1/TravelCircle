@@ -41,16 +41,8 @@ public class PageChannelsFragment extends Fragment {
     private SearchView mSearchFilter = null;
     private String mSearchWord = "";
     private ChannelHeaderListAdapter mAdapter = null;
-    private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            String channelName = (String) view.getTag();
-            if (channelName != null) {
-                //todo show the chatroom page
-            }
-        }
-    };
 
-    public static PageChannelsFragment newInstance(Context context) { //todo not called?
+    public static PageChannelsFragment newInstance(Context context) {
         PageChannelsFragment fragment = new PageChannelsFragment();
         Bundle args = new Bundle();
         args.putInt(context.getString(R.string.section_number), 3);
@@ -100,13 +92,22 @@ public class PageChannelsFragment extends Fragment {
         mSearchFilter.setOnQueryTextListener(this.onQueryTextListener);
     }
 
+    private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            String channelName = (String) view.getTag();
+            if (channelName != null) {
+                ((MainActivity) getActivity()).gotoChatroom(channelName);
+            }
+        }
+    };
+
     private SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(String searchWord) {
             // SubmitボタンorEnterKeyを押されたら呼び出されるメソッド
+            setSearchWord(searchWord);
             resetSearchFilter();
-
-            return setSearchWord(searchWord);
+            return false;
         }
 
         @Override
@@ -125,9 +126,10 @@ public class PageChannelsFragment extends Fragment {
         mSearchFilter.clearFocus();
     }
 
-    private boolean setSearchWord(String searchWord) {
-
-        return false;
+    private void setSearchWord(String searchWord) {
+        //updateView(); instead of below
+        mListView.setAdapter(mAdapter);
+        mListView.setTextFilterEnabled(true);
     }
 
     public void onDestroy() {
@@ -159,8 +161,7 @@ public class PageChannelsFragment extends Fragment {
             }
 
             public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-                Toast.makeText(getActivity(), "Exception: " + throwable.getMessage(),
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Exception: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
                 updateView();
             }
         });

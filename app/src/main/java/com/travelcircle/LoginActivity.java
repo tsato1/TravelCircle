@@ -148,8 +148,7 @@ public class LoginActivity extends Activity {
                             });
                         } else {
                             Log.e(TAG, "register() error: " + failureCode, throwable);
-                            Toast.makeText(LoginActivity.this,
-                                    "Error occured: " + failureCode + ". " + throwable, Toast.LENGTH_LONG).show();
+                            Toast.makeText(LoginActivity.this, "Please retry with better internet connection", Toast.LENGTH_LONG).show();
                         }
                         mConnecting.set(false);
 

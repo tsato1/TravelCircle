@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     private String fragmentCurrentTag;
     private Toolbar toolbar;
     private DrawerLayout mDrawer;
-    private NavigationView navigationView;
+    private NavigationView mNavigationView;
     private ActionBarDrawerToggle drawerToggle;
     private MyProfile mProfile;
 
@@ -56,8 +56,8 @@ public class MainActivity extends AppCompatActivity
         drawerToggle = setupDrawerToggle();
         mDrawer.setDrawerListener(drawerToggle);
 
-        navigationView = (NavigationView) findViewById(R.id.navigation_view);
-        setupDrawerContent(navigationView);
+        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+        setupDrawerContent(mNavigationView);
 
         setupProfileOnDrawer();
 
@@ -90,7 +90,28 @@ public class MainActivity extends AppCompatActivity
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close);
+        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open, R.string.drawer_close) {
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+
+                PageChannelsFragment fragment = (PageChannelsFragment) getFragmentManager().findFragmentByTag(PageChannelsFragment.class.getSimpleName());
+
+                if (fragment != null) {
+                    fragment.resetSearchFilter();
+                }
+            }
+        };
+    }
+
+    public void openDrawer() {
+        mDrawer.openDrawer(GravityCompat.START);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
@@ -158,15 +179,25 @@ public class MainActivity extends AppCompatActivity
         mDrawer.closeDrawers();
     }
 
-    public void openDrawer() {
-        mDrawer.openDrawer(GravityCompat.START);
+    //todo should be a better way (need to know how to pass menuItem to selectDrawerItem()
+    //from onclicklistener in PageChannelsFragment.java)
+    public void gotoChatroom(String channelName) {
+        MenuItem menuItem = mNavigationView.getMenu().findItem(R.id.nav_chatroom_fragment);
+
+        fragmentCurrentTag = PageChatRoomFragment.class.getSimpleName();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container_frame, PageChatRoomFragment.newInstance(this, channelName), fragmentCurrentTag)
+                .commit();
+
+        // Highlight the selected item, update the title, and close the drawer
+        menuItem.setChecked(true);
+        setTitle(menuItem.getTitle());
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (drawerToggle.onOptionsItemSelected(item)) {
-//            PageChannelsFragment fragment = (PageChannelsFragment) getSupportFragmentManager().findFragmentByTag(PageChannelsFragment.class.getSimpleName());
-//            fragment.resetSearchFilter();
 
             return true;
         }

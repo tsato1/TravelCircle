@@ -54,12 +54,13 @@ public class PageChatRoomFragment extends Fragment {
     private ImageButton mSendButton;
     public AtomicBoolean mScrollToBottom = new AtomicBoolean(true);
 
-    private final String channelName = "";
+    private static String channelName = "";
 
-    public static PageChatRoomFragment newInstance(Context context) {
+    public static PageChatRoomFragment newInstance(Context context, String channel) {
         PageChatRoomFragment fragment = new PageChatRoomFragment();
         Bundle args = new Bundle();
         args.putInt(context.getString(R.string.section_number), 2);
+        channelName = channel;
         return fragment;
     }
 
