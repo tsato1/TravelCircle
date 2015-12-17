@@ -6,11 +6,13 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
@@ -22,9 +24,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
+import com.magnet.mmx.client.api.ListResult;
 import com.magnet.mmx.client.api.MMXChannel;
 import com.magnet.mmx.client.common.TopicExistsException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,6 +46,9 @@ public class PageMapFragment extends Fragment {
 
     private GoogleMap googleMap;
     private MapView mMapView;
+    private String mUsername;
+
+    private static boolean isChannelExist = false;
 
     private EditText mChannelName = null;
     private AtomicBoolean mSaving = new AtomicBoolean(false);
@@ -138,6 +145,9 @@ public class PageMapFragment extends Fragment {
         userObject.put("message", "Hello, I am a test user.");
         userObject.saveInBackground();
 
+        mUsername = userObject.get("username").toString();
+        Log.d("test", "coming here!");
+
         googleMap.addMarker(new MarkerOptions()
                 .position(new LatLng((Double) userObject.get("latitude"), (Double) userObject.get("longitude")))
                 .title((String) userObject.get("username"))
@@ -151,6 +161,21 @@ public class PageMapFragment extends Fragment {
         moveCameraToLatLun(false, TOKYO);
     }
 
+//    public boolean isChannelExist(String str) {
+//        MMXChannel.findPublicChannelsByName(str, 0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
+//            @Override
+//            public void onSuccess(ListResult<MMXChannel> mmxChannelListResult) {
+//                isChannelExist = true;
+//            }
+//
+//            @Override
+//            public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
+//                isChannelExist = false;
+//            }
+//        });
+//        return false;
+//    }
+
     class InfoWindowClickListener implements GoogleMap.OnInfoWindowClickListener {
         @Override
         public void onInfoWindowClick(Marker marker) {
@@ -159,15 +184,64 @@ public class PageMapFragment extends Fragment {
             dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface i, int which) {
-                    //todo check if the channel exists
-                    //todo if not make one
-                    //todo navigate to the chatroom fragment
-
+                    Toast.makeText(getActivity(), "Chat with " + mUsername + ".", Toast.LENGTH_SHORT).show();
+                    doSave();
+                    ((MainActivity) getActivity()).gotoChatroom(mUsername);
                 }
             });
             dialog.setNegativeButton(R.string.no, null);
             dialog.show();
         }
+    }
+
+    private void doSave() {
+        final String channelName = mUsername;
+        MMXChannel.create(channelName, channelName, true, new MMXChannel.OnFinishedListener<MMXChannel>() {
+            public void onSuccess(MMXChannel mmxChannel) {
+                //add tags
+//                        SparseBooleanArray checkedPositions = mTagList.getCheckedItemPositions();
+//                        final HashSet<String> tags = new HashSet<String>();
+//                        for (int i = 0; i < checkedPositions.size(); i++) {
+//                            int position = checkedPositions.keyAt(i);
+//                            boolean checked = checkedPositions.valueAt(i);
+//                            if (checked) {
+//                                tags.add(mTagArray[position]);
+//                            }
+//                        }
+//                        if (tags.size() > 0) {
+//                            mmxChannel.setTags(tags, new MMXChannel.OnFinishedListener<Void>() {
+//                                public void onSuccess(Void aVoid) {
+//                                    mSaving.set(false);
+//                                }
+//
+//                                public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
+//                                    Toast.makeText(getActivity(), "Channel '" + channelName + "' created, but unable to add tags: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+//                                    mSaving.set(false);
+//                                    getActivity().finish();
+//                                }
+//                            });
+//                            updateView();
+//                        } else {
+//                            mSaving.set(false);
+//                            getActivity().finish();
+//                        }
+            }
+
+            public void onFailure(MMXChannel.FailureCode failureCode, final Throwable throwable) {
+//                        getActivity().runOnUiThread(new Runnable() {
+//                            public void run() {
+//                                if (throwable instanceof TopicExistsException) {
+//                                    mChannelName.setError(getString(R.string.error_channel_already_exists));
+//                                } else if (throwable.getCause() instanceof TopicExistsException) {
+//                                    mChannelName.setError(throwable.getMessage());
+//                                }
+//                                updateView();
+//                            }
+//                        });
+//                        mSaving.set(false);
+            }
+        });
+        //updateView();
     }
 
     private void moveCameraToLatLun(boolean isAnimation, LatLng target) {

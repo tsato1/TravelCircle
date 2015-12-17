@@ -1,5 +1,7 @@
 package com.travelcircle;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 //import android.app.FragmentManager;
 import android.content.res.Configuration;
@@ -16,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.magnet.mmx.client.api.MMX;
 import com.parse.Parse;
@@ -94,7 +97,6 @@ public class MainActivity extends AppCompatActivity
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-
             }
 
             /** Called when a drawer has settled in a completely open state. */
@@ -153,6 +155,7 @@ public class MainActivity extends AppCompatActivity
                 fragmentNewTag = PageMapFragment.class.getSimpleName();
                 break;
             case R.id.nav_logout:
+                doLogout();
                 return;
             default:
                 fragmentClass = PageMapFragment.class;
@@ -179,7 +182,6 @@ public class MainActivity extends AppCompatActivity
         mDrawer.closeDrawers();
     }
 
-    //todo should be a better way (need to know how to pass menuItem to selectDrawerItem()
     //from onclicklistener in PageChannelsFragment.java)
     public void gotoChatroom(String channelName) {
         MenuItem menuItem = mNavigationView.getMenu().findItem(R.id.nav_chatroom_fragment);
@@ -188,6 +190,20 @@ public class MainActivity extends AppCompatActivity
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container_frame, PageChatRoomFragment.newInstance(this, channelName), fragmentCurrentTag)
+                .commit();
+
+        // Highlight the selected item, update the title, and close the drawer
+        menuItem.setChecked(true);
+        setTitle(menuItem.getTitle());
+    }
+
+    public void gotoChannels() {
+        MenuItem menuItem = mNavigationView.getMenu().findItem(R.id.nav_chatroom_fragment);
+
+        fragmentCurrentTag = PageChannelsFragment.class.getSimpleName();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container_frame, PageChannelsFragment.newInstance(this), fragmentCurrentTag)
                 .commit();
 
         // Highlight the selected item, update the title, and close the drawer
@@ -239,5 +255,35 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void doLogout() {
+        DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
+            public void onClick(final DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        MMX.logout(new MMX.OnFinishedListener<Void>() {
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(MainActivity.this, "Logout successful.", Toast.LENGTH_SHORT).show();
+                                Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                                startActivityForResult(loginIntent, REQUEST_LOGIN);
+                            }
 
+                            public void onFailure(MMX.FailureCode failureCode, Throwable throwable) {
+                                Toast.makeText(MainActivity.this, "Logout failed: " + failureCode +
+                                        ", " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        dialog.cancel();
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
+                .setTitle(R.string.dlg_signout_title)
+                .setMessage(R.string.dlg_signout_message)
+                .setPositiveButton(R.string.ok, clickListener)
+                .setNegativeButton(R.string.cancel, clickListener);
+        builder.create().show();
+    }
 }

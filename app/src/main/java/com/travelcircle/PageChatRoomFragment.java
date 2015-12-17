@@ -3,6 +3,8 @@ package com.travelcircle;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -14,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -41,19 +42,17 @@ public class PageChatRoomFragment extends Fragment {
 
     private View _view;
 
-    public String area, date;
-
-    private boolean nodata = true;
-
-    private MyProfile mProfile;
     public MMXChannel mChannel;
+    private Menu mSubscriptionMenu;
+    private MyProfile mProfile;
     private List<MMXMessage> mChannelItems;
     private ListView mChannelItemsView;
     private TextView mChannelName;
     private EditText mPublishText;
     private ImageButton mSendButton;
+    private ImageButton mBackButton;
+    private ImageButton mSubscribeButton;
     public AtomicBoolean mScrollToBottom = new AtomicBoolean(true);
-
     private static String channelName = "";
 
     public static PageChatRoomFragment newInstance(Context context, String channel) {
@@ -68,7 +67,7 @@ public class PageChatRoomFragment extends Fragment {
         public boolean onMessageReceived(com.magnet.mmx.client.api.MMXMessage mmxMessage) {
             MMXChannel channel = mmxMessage.getChannel();
             if (channel != null && channel.getName().equals(mChannel.getName())) {
-                updateChannelItems();
+                updateChannelList();
             }
             return true;
         }
@@ -78,32 +77,51 @@ public class PageChatRoomFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         _view = inflater.inflate(R.layout.fragment_page_chatroom, container, false);
 
+        findViews();
+        setListeners();
+        prepare();
+
+        return _view;
+    }
+
+    private void findViews() {
         mChannelItemsView = (ListView) _view.findViewById(R.id.channel_items);
         mChannelName = (TextView) _view.findViewById(R.id.channel_name);
         mPublishText = (EditText) _view.findViewById(R.id.publishMessage);
         mSendButton = (ImageButton) _view.findViewById(R.id.imv_send);
+        mBackButton = (ImageButton) _view.findViewById(R.id.btn_back);
+        mSubscribeButton = (ImageButton) _view.findViewById(R.id.btn_subscribe);
+    }
 
+    private void setListeners() {
+        mSubscribeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                doShowMenu(v);
+            }
+        });
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goBackToChannels();
+            }
+        });
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 doPublish(v);
             }
         });
-
-        prepare();
-
-        return _view;
     }
 
-    public void prepare() {
-        Log.d("chat room fragment", "onCreate(): channelName=" + channelName);
+    private void prepare() {
         MMXChannel.findPublicChannelsByName(channelName, 0, 100, new MMXChannel.OnFinishedListener<ListResult<MMXChannel>>() {
             @Override
             public void onSuccess(ListResult<MMXChannel> mmxChannelListResult) {
                 for (MMXChannel channel : mmxChannelListResult.items) {
                     if (channel.getName().equalsIgnoreCase(channelName)) {
                         mChannel = channel;
-                        updateChannelItems();
+                        updateChannelList();
                         break;
                     }
                 }
@@ -122,6 +140,7 @@ public class PageChatRoomFragment extends Fragment {
                 ((MainActivity) getActivity()).openDrawer();
             }
         });
+
         mProfile = MyProfile.getInstance(getActivity());
 
         mChannelName.setText(channelName);
@@ -134,28 +153,27 @@ public class PageChatRoomFragment extends Fragment {
 
     public void onResume() {
         super.onResume();
-        updateChannelItems();
+        updateChannelList();
     }
 
-    private void updateChannelItems() {
+    private void updateChannelList() {
         synchronized (this) {
             if (mChannel != null) {
-                mChannel.getMessages(null, null, 0, 25, false,
-                        new MMXChannel.OnFinishedListener<ListResult<com.magnet.mmx.client.api.MMXMessage>>() {
-                            public void onSuccess(ListResult<com.magnet.mmx.client.api.MMXMessage> mmxMessages) {
-                                //reverse the list
-                                mChannelItems = new ArrayList<MMXMessage>();
-                                for (int i = mmxMessages.items.size(); --i >= 0; ) {
-                                    mChannelItems.add(mmxMessages.items.get(i));
-                                }
-                                mScrollToBottom.set(true);
-                                updateListView();
-                            }
+                mChannel.getMessages(null, null, 0, 25, false, new MMXChannel.OnFinishedListener<ListResult<com.magnet.mmx.client.api.MMXMessage>>() {
+                    public void onSuccess(ListResult<com.magnet.mmx.client.api.MMXMessage> mmxMessages) {
+                        //reverse the list
+                        mChannelItems = new ArrayList<MMXMessage>();
+                        for (int i = mmxMessages.items.size(); --i >= 0; ) {
+                            mChannelItems.add(mmxMessages.items.get(i));
+                        }
+                        mScrollToBottom.set(true);
+                        updateListView();
+                    }
 
-                            public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-                                Toast.makeText(getActivity(), "Unable to retrieve items: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        });
+                    public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
+                        Toast.makeText(getActivity(), "Unable to retrieve items: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
             }
         }
     }
@@ -171,6 +189,14 @@ public class PageChatRoomFragment extends Fragment {
                         InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(mPublishText.getWindowToken(), 0);
                     }
+                }
+
+                if (mChannel.isSubscribed()) {
+                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_action_important);
+                    mSubscribeButton.setImageBitmap(bitmap);
+                } else {
+                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_action_not_important);
+                    mSubscribeButton.setImageBitmap(bitmap);
                 }
             }
         });
@@ -192,29 +218,27 @@ public class PageChatRoomFragment extends Fragment {
         });
         mPublishText.setText(null);
         mScrollToBottom.set(true);
-        updateChannelItems();
+        updateChannelList();
     }
 
-    //todo set up a button on toolbar
     public void doShowMenu(View view) {
         PopupMenu popup = new PopupMenu(getActivity(), view);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.menu_chatroom, popup.getMenu());
 
         //decide which items to hide
-        Menu menu = popup.getMenu();
+        mSubscriptionMenu = popup.getMenu();
 
         if (mChannel.isSubscribed()) {
             //remove subcribe
-            menu.removeItem(R.id.action_subscribe);
+            mSubscriptionMenu.removeItem(R.id.action_subscribe);
         } else {
             //remove unsubscribe
-            menu.removeItem(R.id.action_unsubscribe);
+            mSubscriptionMenu.removeItem(R.id.action_unsubscribe);
         }
 
-        if (!mChannel.getOwnerUsername()
-                .equalsIgnoreCase(MMX.getCurrentUser().getUsername())) {
-            menu.removeItem(R.id.action_delete);
+        if (!mChannel.getOwnerUsername().equalsIgnoreCase(MMX.getCurrentUser().getUsername())) {
+            mSubscriptionMenu.removeItem(R.id.action_delete);
         }
 
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -229,6 +253,7 @@ public class PageChatRoomFragment extends Fragment {
                     case R.id.action_delete:
                         doDelete();
                         break;
+                    default:
                 }
                 return true;
             }
@@ -240,6 +265,7 @@ public class PageChatRoomFragment extends Fragment {
     public void doSubscribe() {
         mChannel.subscribe(new MMXChannel.OnFinishedListener<String>() {
             public void onSuccess(String s) {
+                prepare();
                 Toast.makeText(getActivity(), "Subscribed successfully", Toast.LENGTH_LONG).show();
             }
 
@@ -253,6 +279,7 @@ public class PageChatRoomFragment extends Fragment {
         mChannel.unsubscribe(new MMXChannel.OnFinishedListener<Boolean>() {
             public void onSuccess(Boolean result) {
                 if (result) {
+                    prepare();
                     Toast.makeText(getActivity(), "Unsubscribed successfully", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(getActivity(), "Could not unsubscribe.", Toast.LENGTH_LONG).show();
@@ -361,6 +388,8 @@ public class PageChatRoomFragment extends Fragment {
         }
     }
 
-
+    public void goBackToChannels() {
+        ((MainActivity) getActivity()).gotoChannels();
+    }
 
 }
