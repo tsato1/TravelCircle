@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
@@ -96,6 +98,12 @@ public class MyProfile extends UserProfile{
     }
 
     public LatLng getLocation() {
+        if (mLocation == null) {
+            float lat = mSharedPrefs.getFloat(PREF_LAT, 0.0f);
+            float lng = mSharedPrefs.getFloat(PREF_LNG, 0.0f);
+            mLocation = new LatLng(lat, lng);
+        }
+
         return mLocation;
     }
 

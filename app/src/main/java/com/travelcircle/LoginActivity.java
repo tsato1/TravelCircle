@@ -4,10 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -22,6 +18,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.magnet.mmx.client.api.MMX;
 import com.magnet.mmx.client.api.MMXUser;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -70,10 +67,6 @@ public class LoginActivity extends Activity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-    }
-
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     /**
@@ -126,8 +119,6 @@ public class LoginActivity extends Activity {
                 MMXUser user = new MMXUser.Builder().username(username).build();
                 user.register(password.getBytes(), new MMXUser.OnFinishedListener<Void>() {
                     public void onSuccess(Void aVoid) {
-                        LatLng location = new LatLng(0, 0);
-                        mProfile.setLocation(location);
                         loginHelper(username, password);
                     }
 

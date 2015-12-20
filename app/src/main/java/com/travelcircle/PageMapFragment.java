@@ -3,6 +3,9 @@ package com.travelcircle;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Region;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -41,12 +44,12 @@ import com.parse.ParseObject;
  * Created by T on 2015/09/26.
  */
 public class PageMapFragment extends Fragment {
-    private static final LatLng TOKYO = new LatLng(35.681382, 139.766084);
-    private static final LatLng HAKATA = new LatLng(33.590002, 130.42062199999998);
-
     private GoogleMap googleMap;
     private MapView mMapView;
+    private Marker mUserMarker;
     private String mUsername;
+
+    private MyProfile mProfile = null;
 
     private static boolean isChannelExist = false;
 
@@ -65,6 +68,8 @@ public class PageMapFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         _view = inflater.inflate(R.layout.fragment_page_map, container, false);
+
+        mProfile = MyProfile.getInstance(getActivity());
 
         mMapView = (MapView) _view.findViewById(R.id.map_view);
         mMapView.onCreate(savedInstanceState);
@@ -118,35 +123,71 @@ public class PageMapFragment extends Fragment {
         googleMap.setIndoorEnabled(false);
         googleMap.setMyLocationEnabled(true);
 
+        GPSTracker gps = new GPSTracker(getActivity());
+        LatLng latLng;
+        if (gps.canGetLocation()) {
+            latLng = new LatLng((float) gps.getLatitude(), (float) gps.getLongitude());
+            moveCameraToLatLun(false, latLng, 15.0f);
+        } else {
+            latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
+            gps.showSettingsAlert();
+            moveCameraToLatLun(false, latLng, 3.0f);
+        }
+
+        mProfile.setLocation(latLng);
+
+        anchorUser(mProfile.getLocation());
         showTestUsersOnMap();
 
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                anchorUser(point);
+                moveCameraToLatLun(true, point, 15.0f);
+            }
+        });
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng point) {
-                moveCameraToLatLun(true, HAKATA);
+                //moveCameraToLatLun(true, );
             }
         });
     }
 
+    private void anchorUser(LatLng point) {
+        if (mUserMarker != null) {
+            mUserMarker.remove();
+        }
+
+        mUserMarker = googleMap.addMarker(new MarkerOptions()
+                .position(point)
+                .title(mProfile.getUserName())
+                .snippet(mProfile.getMessage())
+                .icon(BitmapDescriptorFactory.fromBitmap(mProfile.getPhoto()))
+                .anchor(0.5f, 0.5f));
+
+        googleMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
+        googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
+    }
+
     private void createTestUsers() {
-        ParseObject userObject = new ParseObject("UserObject");
-        userObject.put("username", "testuser");
-        userObject.put("latitude", TOKYO.latitude);
-        userObject.put("longitude", TOKYO.longitude);
-        userObject.put("message", "Hello, I am a test user.");
-        userObject.saveInBackground();
+//        ParseObject userObject = new ParseObject("UserObject");
+//        userObject.put("username", "testuser");
+//        userObject.put("latitude", RegionManager.TOKYO.latitude);
+//        userObject.put("longitude", RegionManager.TOKYO.longitude);
+//        userObject.put("message", "Hello, I am a test user.");
+//        userObject.saveInBackground();
     }
 
     private void showTestUsersOnMap() {
         ParseObject userObject = new ParseObject("UserObject");
         userObject.put("username", "testuser");
-        userObject.put("latitude", TOKYO.latitude);
-        userObject.put("longitude", TOKYO.longitude);
+        userObject.put("latitude", RegionManager.getLatLng("TOKYO").latitude);
+        userObject.put("longitude", RegionManager.getLatLng("TOKYO").longitude);
         userObject.put("message", "Hello, I am a test user.");
         userObject.saveInBackground();
 
         mUsername = userObject.get("username").toString();
-        Log.d("test", "coming here!");
 
         googleMap.addMarker(new MarkerOptions()
                 .position(new LatLng((Double) userObject.get("latitude"), (Double) userObject.get("longitude")))
@@ -157,8 +198,6 @@ public class PageMapFragment extends Fragment {
 
         googleMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
         googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
-
-        moveCameraToLatLun(false, TOKYO);
     }
 
 //    public boolean isChannelExist(String str) {
@@ -180,15 +219,26 @@ public class PageMapFragment extends Fragment {
         @Override
         public void onInfoWindowClick(Marker marker) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-            dialog.setTitle(R.string.want_to_chat_person);
-            dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface i, int which) {
-                    Toast.makeText(getActivity(), "Chat with " + mUsername + ".", Toast.LENGTH_SHORT).show();
-                    doSave();
-                    ((MainActivity) getActivity()).gotoChatroom(mUsername);
-                }
-            });
+
+            if (marker.getTitle().equalsIgnoreCase(mProfile.getUserName())) {
+                dialog.setTitle(R.string.want_to_edit_profile);
+                dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface i, int which) {
+                        ((MainActivity) getActivity()).gotoProfilePage();
+                    }
+                });
+            } else {
+                dialog.setTitle(R.string.want_to_chat_person);
+                dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface i, int which) {
+                        Toast.makeText(getActivity(), "Chat with " + mUsername + ".", Toast.LENGTH_SHORT).show();
+                        doSave();
+                        ((MainActivity) getActivity()).gotoChatroom(mUsername);
+                    }
+                });
+            }
             dialog.setNegativeButton(R.string.no, null);
             dialog.show();
         }
@@ -244,11 +294,11 @@ public class PageMapFragment extends Fragment {
         //updateView();
     }
 
-    private void moveCameraToLatLun(boolean isAnimation, LatLng target) {
+    private void moveCameraToLatLun(boolean isAnimation, LatLng target, float zoom) {
         CameraUpdate camera = CameraUpdateFactory
                 .newCameraPosition(new CameraPosition.Builder()
                 .target(target)
-                .zoom(15.0f).build());
+                .zoom(zoom).build());
 
         if (isAnimation) {
             googleMap.animateCamera(camera);

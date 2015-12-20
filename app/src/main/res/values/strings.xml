@@ -51,6 +51,7 @@
     <!-- questions -->
     <string name="dlg_delete_title">Delete channel?</string>
     <string name="want_to_chat_person">Do you want to chat with this person?</string>
+    <string name="want_to_edit_profile">Do you want to edit your profile?</string>
 
     <!-- errors -->
     <string name="error_invalid_email">This username is invalid</string>

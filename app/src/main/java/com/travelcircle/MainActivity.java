@@ -197,6 +197,20 @@ public class MainActivity extends AppCompatActivity
         setTitle(menuItem.getTitle());
     }
 
+    public void gotoProfilePage() {
+        MenuItem menuItem = mNavigationView.getMenu().findItem(R.id.nav_profile_fragment);
+
+        fragmentCurrentTag = PageProfileFragment.class.getSimpleName();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container_frame, PageProfileFragment.newInstance(this), fragmentCurrentTag)
+                .commit();
+
+        // Highlight the selected item, update the title, and close the drawer
+        menuItem.setChecked(true);
+        setTitle(menuItem.getTitle());
+    }
+
     public void gotoChannels() {
         MenuItem menuItem = mNavigationView.getMenu().findItem(R.id.nav_chatroom_fragment);
 
