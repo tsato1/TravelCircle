@@ -13,7 +13,7 @@ public class RegionManager {
     public static LatLng getLatLng(String country) {
         if (country.equalsIgnoreCase("us")) {
             return US;
-        } else if (country.equalsIgnoreCase("tokyo")) {
+        } else if (country.equalsIgnoreCase("jp")) {
             return TOKYO;
         }
 

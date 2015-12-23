@@ -47,6 +47,7 @@ public class PageMapFragment extends Fragment {
     private GoogleMap googleMap;
     private MapView mMapView;
     private Marker mUserMarker;
+    private GPSTracker mGPSTracker;
     private String mUsername;
 
     private MyProfile mProfile = null;
@@ -101,6 +102,7 @@ public class PageMapFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
+        mGPSTracker.stopUsingGPS();
     }
 
     @Override
@@ -123,19 +125,28 @@ public class PageMapFragment extends Fragment {
         googleMap.setIndoorEnabled(false);
         googleMap.setMyLocationEnabled(true);
 
-        GPSTracker gps = new GPSTracker(getActivity());
-        LatLng latLng;
-        if (gps.canGetLocation()) {
-            latLng = new LatLng((float) gps.getLatitude(), (float) gps.getLongitude());
+        mGPSTracker = new GPSTracker(getActivity());
+        LatLng latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
+
+        if (!mGPSTracker.canGetLocation()) {
+            mGPSTracker.showSettingsAlert();
+        }
+
+        if (mGPSTracker.canGetLocation() && mGPSTracker.getLatitude() != 0 && mGPSTracker.getLongitude() != 0) {
+            latLng = new LatLng((float) mGPSTracker.getLatitude(), (float) mGPSTracker.getLongitude());
             moveCameraToLatLun(false, latLng, 15.0f);
+        //} else if (mGPSTracker.canGetLocation() ||
+        //        (latLng == RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity())))) {
+        //    Toast.makeText(getActivity(), "GPS not ready yet. ", Toast.LENGTH_SHORT).show();
         } else {
-            latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
-            gps.showSettingsAlert();
             moveCameraToLatLun(false, latLng, 3.0f);
         }
 
-        mProfile.setLocation(latLng);
+        if (latLng == null) {
+            latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
+        }
 
+        mProfile.setLocation(latLng);
         anchorUser(mProfile.getLocation());
         showTestUsersOnMap();
 
@@ -170,34 +181,22 @@ public class PageMapFragment extends Fragment {
         googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
     }
 
-    private void createTestUsers() {
-//        ParseObject userObject = new ParseObject("UserObject");
-//        userObject.put("username", "testuser");
-//        userObject.put("latitude", RegionManager.TOKYO.latitude);
-//        userObject.put("longitude", RegionManager.TOKYO.longitude);
-//        userObject.put("message", "Hello, I am a test user.");
-//        userObject.saveInBackground();
-    }
 
-    private void showTestUsersOnMap() {
-        ParseObject userObject = new ParseObject("UserObject");
-        userObject.put("username", "testuser");
-        userObject.put("latitude", RegionManager.getLatLng("TOKYO").latitude);
-        userObject.put("longitude", RegionManager.getLatLng("TOKYO").longitude);
-        userObject.put("message", "Hello, I am a test user.");
-        userObject.saveInBackground();
 
-        mUsername = userObject.get("username").toString();
-
-        googleMap.addMarker(new MarkerOptions()
-                .position(new LatLng((Double) userObject.get("latitude"), (Double) userObject.get("longitude")))
-                .title((String) userObject.get("username"))
-                .snippet((String) userObject.get("message"))
-                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)) // todo replace with userObject.get("photo")
-                .anchor(0.5f, 0.5f));
-
-        googleMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
-        googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
+    private void showTestUsersOnMap() { //todo prepare call back to read data from parse
+//        ParseObject userObject = new ParseObject();
+//
+//        mUsername = userObject.get("username").toString();
+//
+//        googleMap.addMarker(new MarkerOptions()
+//                .position(new LatLng((Double) userObject.get("latitude"), (Double) userObject.get("longitude")))
+//                .title((String) userObject.get("username"))
+//                .snippet((String) userObject.get("message"))
+//                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher)) // todo replace with userObject.get("photo")
+//                .anchor(0.5f, 0.5f));
+//
+//        googleMap.setInfoWindowAdapter(new MapUserInfoAdapter(getActivity()));
+//        googleMap.setOnInfoWindowClickListener(new InfoWindowClickListener());
     }
 
 //    public boolean isChannelExist(String str) {

@@ -13,6 +13,10 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.magnet.mmx.client.common.Log;
 
 import java.util.Locale;
@@ -72,11 +76,9 @@ public class GPSTracker extends Service implements LocationListener {
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     Log.d("Network", "Network");
                     if (locationManager != null) {
+                        locationManager.getAllProviders();
                         location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
+                        //updateGPSCoordinates(location);
                     }
                 }
                 // if GPS Enabled get lat/long using GPS Services
@@ -88,11 +90,9 @@ public class GPSTracker extends Service implements LocationListener {
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         Log.d("GPS Enabled", "GPS Enabled");
                         if (locationManager != null) {
+                            locationManager.getAllProviders();
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                            if (location != null) {
-                                latitude = location.getLatitude();
-                                longitude = location.getLongitude();
-                            }
+                            //updateGPSCoordinates(location);
                         }
                     }
                 }
@@ -105,8 +105,29 @@ public class GPSTracker extends Service implements LocationListener {
         return location;
     }
 
+    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
+        @Override
+        public void onMyLocationChange(Location location) {
+            updateGPSCoordinates(location);
+//            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+//            mMarker = googleMap.addMarker(new MarkerOptions().position(loc));
+//            if(mMap != null){
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 16.0f));
+//            }
+        }
+    };
+
+    private void updateGPSCoordinates(Location location) {
+        if (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
+    }
+
     @Override
     public void onLocationChanged(Location location) {
+        this.location = location;
+        updateGPSCoordinates(location);
     }
 
     @Override

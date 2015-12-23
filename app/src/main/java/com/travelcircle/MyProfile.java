@@ -98,12 +98,6 @@ public class MyProfile extends UserProfile{
     }
 
     public LatLng getLocation() {
-        if (mLocation == null) {
-            float lat = mSharedPrefs.getFloat(PREF_LAT, 0.0f);
-            float lng = mSharedPrefs.getFloat(PREF_LNG, 0.0f);
-            mLocation = new LatLng(lat, lng);
-        }
-
         return mLocation;
     }
 

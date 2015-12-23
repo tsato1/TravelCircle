@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.magnet.mmx.client.api.MMX;
 import com.magnet.mmx.client.api.MMXUser;
+import com.parse.ParseObject;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,6 +68,8 @@ public class LoginActivity extends Activity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        createTestUsers();
     }
 
     /**
@@ -234,5 +237,16 @@ public class LoginActivity extends Activity {
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
+    }
+
+    private void createTestUsers() {
+//        for (int i = 0; i < 5; i++) {
+//            ParseObject userObject = new ParseObject("UserObject00" + i);
+//            userObject.put("username", "TestUser00" + i);
+//            userObject.put("latitude", RegionManager.getLatLng("jp").latitude);
+//            userObject.put("longitude", RegionManager.getLatLng("jp").longitude);
+//            userObject.put("message", "Hello, I am TestUser00" + i);
+//            userObject.saveInBackground();
+//        }
     }
 }
