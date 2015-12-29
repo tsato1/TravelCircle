@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 //import android.app.FragmentManager;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.support.design.widget.NavigationView;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -20,16 +21,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.magnet.max.android.ApiCallback;
+import com.magnet.max.android.ApiError;
+import com.magnet.max.android.Max;
+import com.magnet.max.android.User;
 import com.magnet.mmx.client.api.MMX;
-import com.parse.Parse;
 
-public class MainActivity extends AppCompatActivity
-        /*implements NavigationDrawerFragment.NavigationDrawerCallbacks*/ {
-    private static final String TAG_FRAGMENT_MAP = "tag_map";
-    private static final String TAG_FRAGMENT_CHAT = "tag_chat";
-    private static final String TAG_FRAGMENT_LIST = "tag_list";
-    private static final String TAG_FRAGMENT_PROFILE = "tag_profile";
+//import com.parse.Parse;
 
+public class MainActivity extends AppCompatActivity {
     public static final String KEY_MESSAGE_TEXT = "content";
     private static final int REQUEST_LOGIN = 1;
 
@@ -39,8 +42,13 @@ public class MainActivity extends AppCompatActivity
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle drawerToggle;
     private MyProfile mProfile;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
-    public Toolbar getToolbar () {
+    public Toolbar getToolbar() {
         return toolbar;
     }
 
@@ -49,8 +57,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "GkmNnoUZGBwfQJd3xsGgPIUachckL2eddHN3wrvR", "EPMcSnJnN8MhBBz7TkLKEyBwwOx0xNWHm6Blg9jW");
+        //Parse.enableLocalDatastore(this);
+        //Parse.initialize(this, "GkmNnoUZGBwfQJd3xsGgPIUachckL2eddHN3wrvR", "EPMcSnJnN8MhBBz7TkLKEyBwwOx0xNWHm6Blg9jW");
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -68,6 +76,9 @@ public class MainActivity extends AppCompatActivity
         fragmentCurrentTag = PageMapFragment.class.getSimpleName();
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.container_frame, PageMapFragment.newInstance(this), fragmentCurrentTag).commit();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     private void setupProfileOnDrawer() {
@@ -133,7 +144,7 @@ public class MainActivity extends AppCompatActivity
 
         Class fragmentClass;
         String fragmentNewTag = "";
-        switch(menuItem.getItemId()) {
+        switch (menuItem.getItemId()) {
             case R.id.nav_map_fragment:
                 fragmentClass = PageMapFragment.class;
                 fragmentNewTag = PageMapFragment.class.getSimpleName();
@@ -263,7 +274,7 @@ public class MainActivity extends AppCompatActivity
 
     protected void onResume() {
         super.onResume();
-        if (MMX.getCurrentUser() == null) {
+        if (User.getCurrentUser() == null){
             Intent loginIntent = new Intent(this, LoginActivity.class);
             startActivityForResult(loginIntent, REQUEST_LOGIN);
         }
@@ -274,16 +285,24 @@ public class MainActivity extends AppCompatActivity
             public void onClick(final DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        MMX.logout(new MMX.OnFinishedListener<Void>() {
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(MainActivity.this, "Logout successful.", Toast.LENGTH_SHORT).show();
-                                Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
-                                startActivityForResult(loginIntent, REQUEST_LOGIN);
+                        User.logout(new ApiCallback<Boolean>() {
+                            public void success(Boolean aBoolean) {
+                                Max.deInitModule(MMX.getModule(), new ApiCallback<Boolean>() {
+                                    public void success(Boolean aBoolean) {
+                                        Toast.makeText(MainActivity.this, "Logout successful.", Toast.LENGTH_SHORT).show();
+                                        Intent loginIntent = new Intent(MainActivity.this, LoginActivity.class);
+                                        startActivityForResult(loginIntent, REQUEST_LOGIN);
+                                    }
+
+                                    public void failure(ApiError apiError) {
+                                        MainActivity.this.finish();
+                                    }
+                                });
                             }
 
-                            public void onFailure(MMX.FailureCode failureCode, Throwable throwable) {
-                                Toast.makeText(MainActivity.this, "Logout failed: " + failureCode +
-                                        ", " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                            public void failure(ApiError apiError) {
+                                Toast.makeText(MainActivity.this, "Logout failed: " + apiError +
+                                        ", " + apiError.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
                         break;
@@ -299,5 +318,45 @@ public class MainActivity extends AppCompatActivity
                 .setPositiveButton(R.string.ok, clickListener)
                 .setNegativeButton(R.string.cancel, clickListener);
         builder.create().show();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.travelcircle/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app deep link URI is correct.
+                Uri.parse("android-app://com.travelcircle/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
     }
 }

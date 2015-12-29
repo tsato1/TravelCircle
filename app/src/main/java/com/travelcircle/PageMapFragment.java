@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.parse.ParseObject;
+//import com.parse.ParseObject;
 
 
 /**
@@ -245,7 +245,8 @@ public class PageMapFragment extends Fragment {
 
     private void doSave() {
         final String channelName = mUsername;
-        MMXChannel.create(channelName, channelName, true, new MMXChannel.OnFinishedListener<MMXChannel>() {
+        MMXChannel.create(channelName, channelName, true, MMXChannel.PublishPermission.ANYONE,
+                new MMXChannel.OnFinishedListener<MMXChannel>() {
             public void onSuccess(MMXChannel mmxChannel) {
                 //add tags
 //                        SparseBooleanArray checkedPositions = mTagList.getCheckedItemPositions();

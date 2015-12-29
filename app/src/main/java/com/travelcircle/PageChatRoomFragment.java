@@ -237,7 +237,7 @@ public class PageChatRoomFragment extends Fragment {
             mSubscriptionMenu.removeItem(R.id.action_unsubscribe);
         }
 
-        if (!mChannel.getOwnerUsername().equalsIgnoreCase(MMX.getCurrentUser().getUsername())) {
+        if (!mChannel.getOwnerId().equalsIgnoreCase(MMX.getCurrentUser().getUserIdentifier())) {
             mSubscriptionMenu.removeItem(R.id.action_delete);
         }
 
@@ -340,7 +340,7 @@ public class PageChatRoomFragment extends Fragment {
             int type = getItemViewType(position);
             MMXMessage message = getItem(position);
             int colorResId = 0;
-            String authorStr = message.getSender().getUsername();
+            String authorStr = message.getSender().getUserName();
             if (authorStr == null) {
                 authorStr = getContext().getString(R.string.chat_unknown);
             }
@@ -378,7 +378,7 @@ public class PageChatRoomFragment extends Fragment {
         @Override
         public int getItemViewType(int position) {
             MMXMessage message = getItem(position);
-            if (mProfile.getUsername().equals(message.getSender().getUsername())) {
+            if (mProfile.getUsername().equals(message.getSender().getUserName())) {
                 //me
                 return TYPE_ME;
             } else {
