@@ -16,7 +16,6 @@
     <string name="channels">Channels</string>
     <string name="room">Chat Room</string>
     <string name="profile">Profile</string>
-
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="yes">Yes</string>
@@ -31,6 +30,7 @@
 
     <string name="search_menu_query_hint_text">Search</string>
 
+    <string name="default_user_message">Hi, I am a new user!</string>
 
     <!-- Strings related to navigation drawer -->
     <string name="drawer_open">Open navigation drawer</string>

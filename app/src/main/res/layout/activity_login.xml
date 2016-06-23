@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:orientation="vertical"
+    android:background="@color/ColorBackground"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -27,15 +28,18 @@
             android:id="@+id/email_login_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/ColorBackground"
             android:orientation="vertical"
             android:gravity="center_horizontal">
 
             <ImageView
                 android:layout_width="300dp"
                 android:layout_height="300dp"
+                android:maxWidth="300dp"
+                android:maxHeight="300dp"
                 android:contentDescription="@string/desc_app_logo"
                 android:scaleType="centerInside"
-                android:src="@drawable/common_ic_googleplayservices"/>
+                android:src="@mipmap/travelcircle"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -72,10 +76,10 @@
                     android:layout_width="250dp"
                     android:layout_height="50dp"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/common_ic_googleplayservices"
+                    android:background="@mipmap/cloud"
                     android:text="@string/action_sign_in"
                     android:textStyle="bold"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/ColorBackground"
                     android:textSize="20sp"
                     />
 
@@ -85,10 +89,10 @@
                     android:layout_width="250dp"
                     android:layout_height="50dp"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/common_ic_googleplayservices"
+                    android:background="@mipmap/cloud"
                     android:text="@string/action_register"
                     android:textStyle="bold"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/ColorBackground"
                     android:textSize="20sp"
                     />
 

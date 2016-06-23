@@ -102,7 +102,6 @@ public class PageMapFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
-        mGPSTracker.stopUsingGPS();
     }
 
     @Override
@@ -125,30 +124,9 @@ public class PageMapFragment extends Fragment {
         googleMap.setIndoorEnabled(false);
         googleMap.setMyLocationEnabled(true);
 
-        mGPSTracker = new GPSTracker(getActivity());
-        LatLng latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
-
-        if (!mGPSTracker.canGetLocation()) {
-            mGPSTracker.showSettingsAlert();
-        }
-
-        if (mGPSTracker.canGetLocation() && mGPSTracker.getLatitude() != 0 && mGPSTracker.getLongitude() != 0) {
-            latLng = new LatLng((float) mGPSTracker.getLatitude(), (float) mGPSTracker.getLongitude());
-            moveCameraToLatLun(false, latLng, 15.0f);
-        //} else if (mGPSTracker.canGetLocation() ||
-        //        (latLng == RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity())))) {
-        //    Toast.makeText(getActivity(), "GPS not ready yet. ", Toast.LENGTH_SHORT).show();
-        } else {
-            moveCameraToLatLun(false, latLng, 3.0f);
-        }
-
-        if (latLng == null) {
-            latLng = RegionManager.getLatLng(GPSTracker.getUserCountry(getActivity()));
-        }
-
-        mProfile.setLocation(latLng);
-        anchorUser(mProfile.getLocation());
-        showTestUsersOnMap();
+        LatLng location =mProfile.getLocation();
+        anchorUser(location);
+        //showTestUsersOnMap();
 
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -165,13 +143,13 @@ public class PageMapFragment extends Fragment {
         });
     }
 
-    private void anchorUser(LatLng point) {
+    private void anchorUser(LatLng location) {
         if (mUserMarker != null) {
             mUserMarker.remove();
         }
 
         mUserMarker = googleMap.addMarker(new MarkerOptions()
-                .position(point)
+                .position(location)
                 .title(mProfile.getUserName())
                 .snippet(mProfile.getMessage())
                 .icon(BitmapDescriptorFactory.fromBitmap(mProfile.getPhoto()))

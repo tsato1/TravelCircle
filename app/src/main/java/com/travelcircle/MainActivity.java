@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 //import android.app.FragmentManager;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.design.widget.NavigationView;
 import android.app.Fragment;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -29,8 +31,7 @@ import com.magnet.max.android.ApiError;
 import com.magnet.max.android.Max;
 import com.magnet.max.android.User;
 import com.magnet.mmx.client.api.MMX;
-
-//import com.parse.Parse;
+import com.parse.Parse;
 
 public class MainActivity extends AppCompatActivity {
     public static final String KEY_MESSAGE_TEXT = "content";
@@ -41,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle drawerToggle;
-    private MyProfile mProfile;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -57,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Parse.enableLocalDatastore(this);
-        //Parse.initialize(this, "GkmNnoUZGBwfQJd3xsGgPIUachckL2eddHN3wrvR", "EPMcSnJnN8MhBBz7TkLKEyBwwOx0xNWHm6Blg9jW");
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -70,25 +70,32 @@ public class MainActivity extends AppCompatActivity {
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
         setupDrawerContent(mNavigationView);
 
-        setupProfileOnDrawer();
+//        ImageView imvProfile = (ImageView) findViewById(R.id.imv_profile);
+//        imvProfile.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+//        TextView txvUsername = (TextView) findViewById(R.id.txv_username);
+//        txvUsername.setText(mProfile.getUserName());
+//        TextView txvMessage = (TextView) findViewById(R.id.txv_message);
+//        txvMessage.setText(getResources().getString(R.string.default_user_message));
 
         mDrawer.openDrawer(GravityCompat.START);
-        fragmentCurrentTag = PageMapFragment.class.getSimpleName();
+        fragmentCurrentTag = PageChannelsFragment.class.getSimpleName();
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.container_frame, PageMapFragment.newInstance(this), fragmentCurrentTag).commit();
+        fragmentManager.beginTransaction().replace(R.id.container_frame, PageChannelsFragment.newInstance(this), fragmentCurrentTag).commit();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    private void setupProfileOnDrawer() {
-        mProfile = MyProfile.getInstance(this);
+    public void setupProfileOnDrawer() {
+        MyProfile profile = MyProfile.getInstance(this);
         ImageView imvProfile = (ImageView) findViewById(R.id.imv_profile);
-        imvProfile.setImageBitmap(mProfile.getPhoto());
+        imvProfile.setImageBitmap(profile.getPhoto());
         TextView txvUsername = (TextView) findViewById(R.id.txv_username);
-        txvUsername.setText(mProfile.getUserName());
+        txvUsername.setText(profile.getUserName());
         TextView txvMessage = (TextView) findViewById(R.id.txv_message);
-        txvMessage.setText(mProfile.getMessage());
+        String str = profile.getMessage();
+        if (str != null) Log.d("asdf", str);//todo have to be able to read from parse on login
+        txvMessage.setText(str);
     }
 
     @Override
@@ -169,8 +176,8 @@ public class MainActivity extends AppCompatActivity {
                 doLogout();
                 return;
             default:
-                fragmentClass = PageMapFragment.class;
-                fragmentNewTag = PageMapFragment.class.getSimpleName();
+                fragmentClass = PageChannelsFragment.class;
+                fragmentNewTag = PageChannelsFragment.class.getSimpleName();
         }
 
         try {
@@ -358,5 +365,18 @@ public class MainActivity extends AppCompatActivity {
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == REQUEST_LOGIN) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                // The user picked a contact.
+                // The Intent's data Uri identifies which contact was selected.
+                setupProfileOnDrawer();
+            }
+        }
     }
 }

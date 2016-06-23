@@ -4,14 +4,14 @@
         android:id="@+id/menu_main"
         android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_map_fragment"
-            android:title="@string/map" />
-        <item
             android:id="@+id/nav_channels_fragment"
             android:title="@string/channels" />
         <item
             android:id="@+id/nav_chatroom_fragment"
             android:title="@string/room" />
+        <item
+            android:id="@+id/nav_map_fragment"
+            android:title="@string/map" />
         <item
             android:id="@+id/nav_profile_fragment"
             android:title="@string/profile" />

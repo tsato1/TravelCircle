@@ -70,6 +70,7 @@ public class PageProfileFragment extends Fragment {
                     Toast.makeText(getActivity(), "Successfully saved", Toast.LENGTH_SHORT).show();
                     InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                    ((MainActivity) getActivity()).setupProfileOnDrawer();
                     ((MainActivity) getActivity()).openDrawer();
                 }
             }
@@ -82,8 +83,8 @@ public class PageProfileFragment extends Fragment {
     }
 
     private void saveUpdatedProfile() {
-        mProfile.setUsername(usernameTextView.getText().toString());
-        mProfile.setMessage(messageTextView.getText().toString());
+        mProfile.setUsernameToParse(usernameTextView.getText().toString());
+        mProfile.setMessageToParse(messageTextView.getText().toString());
     }
 
     public void onDestroy() {

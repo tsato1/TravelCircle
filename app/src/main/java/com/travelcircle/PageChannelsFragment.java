@@ -158,7 +158,8 @@ public class PageChannelsFragment extends Fragment {
             }
 
             public void onFailure(MMXChannel.FailureCode failureCode, Throwable throwable) {
-                Toast.makeText(getActivity(), "Exception: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getActivity(), "Exception: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
+                Log.d("ChannesFragment", "Exception: " + throwable.getMessage());
                 updateView();
             }
         });

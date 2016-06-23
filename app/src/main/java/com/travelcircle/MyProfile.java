@@ -14,6 +14,14 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.vision.barcode.Barcode;
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 //import com.squareup.okhttp.MediaType;
 //import com.squareup.okhttp.OkHttpClient;
 //import com.squareup.okhttp.Request;
@@ -28,6 +36,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Blob;
+import java.util.List;
 
 /**
  * Created by T on 2015/09/27.
@@ -47,11 +56,12 @@ public class MyProfile extends UserProfile{
     private static MyProfile sInstance = null;
     private Context mContext = null;
     private SharedPreferences mSharedPrefs = null;
-    private int mId = 0;
+    private String mParseId = null;
     private byte[] mPassword = null;
     private Bitmap mPhoto = null;
     private LatLng mLocation = null;
     private String mMessage = "";
+    private ParseObject mParseUser;
 
     private MyProfile(Context context) {
         super();
@@ -62,10 +72,46 @@ public class MyProfile extends UserProfile{
 
     private synchronized void loadProfile() {
         setUsername(mSharedPrefs.getString(PREF_USERNAME, null));
+
         String password = mSharedPrefs.getString(PREF_PASSWORD, null);
         mPassword = password != null ? password.getBytes() : null;
-        setPhoto(BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_launcher));
-        setMessage("Hi, I am a new user!");
+
+//        Bitmap bitmap;
+//        if (mSharedPrefs.getString(PREF_PHOTO, null) == null) {
+//            bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+//        } else {
+//            byte [] encodeByte = Base64.decode(mSharedPrefs.getString(PREF_PHOTO, null), Base64.DEFAULT);
+//            bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+//        }
+//        setPhoto(bitmap);
+
+        setMessage(mSharedPrefs.getString(PREF_MESSAGE, null));
+    }
+
+    public void checkOverlapParse (String str) {
+        final ParseQuery query = new ParseQuery("User");
+        query.whereEqualTo("username", str);
+        query.getFirstInBackground(new GetCallback<ParseObject>() {
+            public void done(ParseObject person, ParseException e) {
+                if (e == null) {
+                    mParseUser = person;
+                } else {
+                }
+            }
+        });
+    }
+
+    public synchronized void setParseUser() {
+        mParseUser = new ParseObject("User");
+        mParseUser.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    mParseId = mParseUser.getObjectId();
+                    setParseId(mParseId);
+                }
+            }
+        });
     }
 
     public static synchronized MyProfile getInstance(Context context) {
@@ -75,8 +121,12 @@ public class MyProfile extends UserProfile{
         return sInstance;
     }
 
-    public int getId() {
-        return mId;
+    private String getParseId() {
+        return mSharedPrefs.getString(PREF_ID, null);
+    }
+
+    private void setParseId(String id) {
+        mSharedPrefs.edit().putString(PREF_ID, id).apply();
     }
 
     public String getUserName() {
@@ -88,8 +138,10 @@ public class MyProfile extends UserProfile{
         mSharedPrefs.edit().putString(PREF_USERNAME, username).apply();
     }
 
-    public byte[] getPassword() {
-        return mPassword;
+    public void setUsernameToParse(String username) {
+        mParseUser.put("username", username);
+        mParseUser.saveInBackground();
+        setUsername(username);
     }
 
     public void setPassword(byte[] password) {
@@ -97,36 +149,67 @@ public class MyProfile extends UserProfile{
         mSharedPrefs.edit().putString(PREF_PASSWORD, new String(password)).apply();
     }
 
-    public LatLng getLocation() {
-        return mLocation;
+    public void setPasswordToParse(String password) {
+        mParseUser.put("password", password);
+        mParseUser.saveInBackground();
     }
 
-    public void setLocation(LatLng location) {
-        mLocation = location;
-        mSharedPrefs.edit().putFloat(PREF_LAT, (float)location.latitude);
-        mSharedPrefs.edit().putFloat(PREF_LNG, (float)location.longitude);
+    public LatLng getLocation() {
+        return super.getLocation();
+    }
+
+    private void setLocation(ParseGeoPoint point) {
+        super.setLocation(mLocation);
+        mSharedPrefs.edit().putFloat(PREF_LAT, (float) point.getLatitude());
+        mSharedPrefs.edit().putFloat(PREF_LNG, (float) point.getLongitude());
+    }
+
+    public void setLocationToParse(ParseGeoPoint point) {
+        mParseUser.put("location", point);
+        mParseUser.saveInBackground();
+        setLocation(point);
     }
 
     public Bitmap getPhoto() {
-        byte[] bytes = Base64.decode(mSharedPrefs.getString(PREF_PHOTO, "").getBytes(), Base64.DEFAULT);
-        mPhoto = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        return mPhoto;
+        return super.getPhoto();
     }
 
     public void setPhoto(Bitmap photo) {
-        mPhoto = photo;
+        super.setPhoto(photo);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         photo.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         String bitmapString = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
         mSharedPrefs.edit().putString(PREF_PHOTO, bitmapString).commit();
     }
 
+    public void setPhotoToParse(Bitmap photo) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        photo.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        String bitmapString = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+        mParseUser.put("photo", bitmapString);
+        mParseUser.saveInBackground();
+        setPhoto(photo);
+    }
+
     public String getMessage() {
-        return mMessage;
+        if (super.getMessage() != null) Log.d("asdf", super.getMessage());
+        return super.getMessage();
     }
 
     public void setMessage(String message) {
-        mMessage = message;
+        super.setMessage(message);
         mSharedPrefs.edit().putString(PREF_MESSAGE, message);
+    }
+
+    public void setMessageToParse(String message) {
+        mParseUser.put("message", message);
+        mParseUser.saveInBackground();
+        setMessage(message);
+    }
+
+    public synchronized void setParametersFromParse() {
+        byte[] bytes = Base64.decode(mParseUser.getString("photo").getBytes(), Base64.DEFAULT);
+        mPhoto = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        mMessage = mParseUser.getString("message");
     }
 }

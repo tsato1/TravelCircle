@@ -4,9 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
@@ -21,8 +24,8 @@ import com.magnet.max.android.Max;
 import com.magnet.max.android.User;
 import com.magnet.max.android.auth.model.UserRegistrationInfo;
 import com.magnet.mmx.client.api.MMX;
+import com.parse.ParseGeoPoint;
 
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,6 +42,7 @@ public class LoginActivity extends Activity {
 
     private AtomicBoolean mConnecting = new AtomicBoolean(false);
     private MyProfile mProfile = null;
+    private ParseGeoPoint mPoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,16 @@ public class LoginActivity extends Activity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        GPSTracker gpsTracker = new GPSTracker(this);
+        mPoint = new ParseGeoPoint();
+        if (gpsTracker.canGetLocation()) {
+            mPoint.setLatitude(gpsTracker.getLatitude());
+            mPoint.setLongitude(gpsTracker.getLongitude());
+        } else {
+            mPoint.setLatitude(RegionManager.getLatLng(GPSTracker.getUserCountry(this)).latitude);
+            mPoint.setLongitude(RegionManager.getLatLng(GPSTracker.getUserCountry(this)).longitude);
+        }
     }
 
     protected void onDestroy() {
@@ -124,6 +138,9 @@ public class LoginActivity extends Activity {
             mProfile.setPassword(password.getBytes());
             showProgress(true);
             mConnecting.set(true);
+
+            mProfile.checkOverlapParse(username);
+
             if (register) {
                 UserRegistrationInfo userInfo = new UserRegistrationInfo.Builder()
                         .userName(username)
@@ -133,6 +150,14 @@ public class LoginActivity extends Activity {
                     @Override
                     public void success(User user) {
                         loginHelper(username, password);
+
+                        mProfile.setParseUser();
+                        mProfile.setUsernameToParse(username);
+                        mProfile.setPasswordToParse(password);
+                        mProfile.setLocationToParse(mPoint);
+                        mProfile.setPhotoToParse(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+                        mProfile.setMessageToParse(getResources().getString(R.string.default_user_message));
+                        mProfile.setParametersFromParse();
                     }
 
                     @Override
